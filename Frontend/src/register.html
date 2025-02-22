@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="registerStyles.css">
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <label for="confirm-password">Confirm Password:</label>
+        <input type="password" id="confirm-password" name="confirm-password" required><br><br>
+        
+        <button type="submit" >Sign up</button>
+        <button id="back">Back</button>
+    </form>
+</body>
+<script>
+    document.getElementById('back').addEventListener('click', () => {
+        window.location.href = '/index.html';
+    });
+
+    document.getElementById('signup-form').addEventListener('submit',  async function (event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (password !== confirmPassword) {
+            alert('Password and Confirm Password do not match');
+            console.log('Password and Confirm Password do not match');
+            return;
+        }
+        try{
+            const response = await fetch('http://localhost:3000/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            });
+            
+            const data = await response.json();
+            
+            alert(data.message);
+
+            if(data.success){
+                window.location.replace('/login.html');
+            }
+            
+        } catch (error) {
+            console.error('Error registering user', error);
+        }
+        
+    });
+</script>
+</html>

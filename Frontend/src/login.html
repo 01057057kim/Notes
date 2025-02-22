@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="loginStyles.css">
+</head>
+<body>
+    <h2>Sign In</h2>
+    <form id="signin-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+    
+        <button type="submit">Sign In</button>
+        <button id="register">Sign Up</button>
+    </form>
+</body>
+<script>
+    document.getElementById('register').addEventListener('click', () => {
+        window.location.href = 'register.html';
+    });
+
+    document.getElementById('signin-form').addEventListener('submit', async function(event){
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if(!username || !password){
+            alert('Please fill in all fields');
+            console.log('Please fill in all fields');
+            return;
+        }
+
+        try{
+            const response = await fetch('http://localhost:3000/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            });
+
+            const data = await response.json();
+
+            alert(data.message);
+
+            if(data.success){
+                window.location.replace('/app.html');
+            }
+        } catch (error) {
+            console.log('Error:', error);
+        }
+    });
+</script>
+</html>

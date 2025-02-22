@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="appStyles.css">
+</head>
+<body>
+    <header>
+        <h1>Notes App</h1>
+        <button id="signOut">sign Out</button>
+    </header>
+    <main>
+        
+    </main>
+</body>
+<script>
+    document.getElementById('signOut').addEventListener('click', async function(){
+        try{
+            const response = await fetch('http://localhost:3000/signout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            alert(data.message);
+            
+            if(data.success){
+                localStorage.clear();
+                window.location.replace('/index.html');
+            }
+        } catch (error) {
+            console.log('Error:', error);
+        }
+    });
+</script>
+</html>
