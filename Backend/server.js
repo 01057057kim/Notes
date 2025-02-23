@@ -1,17 +1,20 @@
 const express = require('express');
-const router = require('./routes/routes');
 const setupMiddlewares = require('./middlewares/middlewares');
-const database = require('./db/db');
+const connectDB = require('./db/db');
+
+const accountRoutes = require('./routes/routesAccount');
+const categoryRoutes = require('./routes/routesCategory');
 
 const port = 3000;
-
 const app = express();
 
 setupMiddlewares(app);
 
-database();
+const { accountDB, categoryDB } = connectDB();
 
-app.use('/', router);
+app.use('/account', accountRoutes);
+app.use('/category', categoryRoutes);
+
 
 app.listen(port, () => {
     console.log('server online')

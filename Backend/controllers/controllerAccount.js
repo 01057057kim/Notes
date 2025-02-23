@@ -107,9 +107,32 @@ const signOut = async (req, res) => {
     }
 }
 
+const getUsername = async (req, res) => {
+    try{
+        if(!req.session.user){
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        res.json({
+            success: true,
+            username: req.session.user.username
+        })
+
+    }catch(err){
+        console.error('Failed to get username', err);
+        res.status(500).json({
+            success: false,
+            message: 'error during get username'
+        })
+    }
+}
+
 module.exports = {
     signUp,
     signIn,
     signOut,
+    getUsername
 };
 

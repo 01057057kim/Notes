@@ -6,10 +6,17 @@
     <title>Notes App</title>
     <link rel="stylesheet" href="appStyles.css">
 </head>
-<body>
+<body onload="getUsername()">
     <header>
         <h1>Notes App</h1>
-        <button id="signOut">sign Out</button>
+        <label id="usernameLabel"></label>
+        <button id="signOut">Sign Out</button>
+        <button id="newCategory">newCategory</button>
+        <label>Category Name</label>
+        <input id="categoryName" type="text">
+        <section id="posts">
+        </section>
+        
     </header>
     <main>
         
@@ -18,7 +25,7 @@
 <script>
     document.getElementById('signOut').addEventListener('click', async function(){
         try{
-            const response = await fetch('http://localhost:3000/signout', {
+            const response = await fetch('http://localhost:3000/account/signout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -38,5 +45,67 @@
             console.log('Error:', error);
         }
     });
+
+    async function getUsername(){
+        try{
+           const response = await fetch('/account/getusername')
+           const data = await response.json()
+           
+           if(data.success){
+                document.getElementById('usernameLabel').innerHTML = `Welcome ${data.username}`
+           }else{
+            console.log('Username Invalid', error);
+           }
+           
+        }catch(error){
+            console.log('Username Invalid', error);
+        }
+    }
+    /**
+    document.getElementById('newCategory').addEventListener('click', async function(){
+        const categoryName = document.getElementById('categoryName').value;
+        try{
+            const response = await fetch('http://localhost:3000/category/createcategory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categoryName
+                })
+            });
+
+            const data = await response.json();
+
+            alert(data.message);
+            
+            if(data.success){
+                console.log('Category created');
+            }
+        } catch (error) {
+            console.log('Error create category', error);
+        }
+    });
+
+    async function getCategory() {
+        try{
+            const response = await fetch('category/getcategory')
+            const category = await response.json();
+            const postSection = document.getElementById('posts')
+
+            category.forEach(function(category) {
+                const categoryElemet = document.createElement('categoryLabel')
+                categoryElemet.innerHTML = `
+                <label> ${category.categoryName}<label>
+                <button>Test<button>
+                `
+                postSection.appendChild(categoryElemet)
+            });
+
+        }catch(err){
+            console.log(err)
+        }
+    }
+    **/
 </script>
 </html>

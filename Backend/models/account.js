@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const connectDB = require('../db/db');
+
+const { accountDB } = connectDB();
 
 const accountSchema = new mongoose.Schema({
     username: {
@@ -13,5 +16,5 @@ const accountSchema = new mongoose.Schema({
 
 });
 
-const account = mongoose.model('account', accountSchema);
-module.exports = account;
+const Account = accountDB.model('Account', accountSchema);
+module.exports = Account;
