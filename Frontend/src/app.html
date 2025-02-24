@@ -6,14 +6,14 @@
     <title>Notes App</title>
     <link rel="stylesheet" href="appStyles.css">
 </head>
-<body onload="getUsername()">
+<body>
     <header>
         <h1>Notes App</h1>
         <label id="usernameLabel"></label>
         <button id="signOut">Sign Out</button>
-        <button id="newCategory">newCategory</button>
+        
         <label>Category Name</label>
-        <input id="categoryName" type="text">
+        <input id="categoryName" type="text"><button id="newCategory">newCategory</button>
         <section id="posts">
         </section>
         
@@ -61,15 +61,21 @@
             console.log('Username Invalid', error);
         }
     }
-    /**
+    
     document.getElementById('newCategory').addEventListener('click', async function(){
         const categoryName = document.getElementById('categoryName').value;
         try{
+            if(categoryName == '' || categoryName == null){
+                alert("Please fill Category Name")
+                return
+            }
+
             const response = await fetch('http://localhost:3000/category/createcategory', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     categoryName
                 })
@@ -81,6 +87,7 @@
             
             if(data.success){
                 console.log('Category created');
+                location.reload();
             }
         } catch (error) {
             console.log('Error create category', error);
@@ -89,23 +96,98 @@
 
     async function getCategory() {
         try{
-            const response = await fetch('category/getcategory')
-            const category = await response.json();
+            const response = await fetch('/category/getcategory', {credentials: 'include'})
+            const data = await response.json();
             const postSection = document.getElementById('posts')
+            postSection.innerHTML = ''
 
-            category.forEach(function(category) {
-                const categoryElemet = document.createElement('categoryLabel')
-                categoryElemet.innerHTML = `
-                <label> ${category.categoryName}<label>
-                <button>Test<button>
+            if (!data.success){
+                console.log('Error', data.message)
+                return
+            }
+
+            data.categories.forEach(function(category) {
+                const categoryElement = document.createElement('section')
+                categoryElement.innerHTML = `
+                <label> ${category.categoryName}</label>
+                <button onClick="deleteCategory('${category._id}')">Delete</button> </br>
+                <div>
+                    <label>Title<label>
+                    <input class="notesTitle" type="text"></br>
+                    <label>Content<label>
+                    <textarea class='notesContent'></textarea>
+                    <button class="addNotesButton" data-category-id="${category._id}">Add Notes</button>
+                </div>
                 `
-                postSection.appendChild(categoryElemet)
+                postSection.appendChild(categoryElement)
             });
 
         }catch(err){
             console.log(err)
         }
     }
-    **/
+
+    async function deleteCategory(id) {
+        try{
+            const response = await fetch('/category/deletecategory',{
+                method: 'DELETE',
+                headers: {'Content-Type':'application/json'},
+                credentials: "include",
+                body: JSON.stringify({id})
+            })
+            const data = await response.json()
+            if(data.success){
+                alert('Succes Delete Category')
+                location.reload()
+            }else{
+                alert('Failed to delete')
+                console.log(err)
+            }
+        }catch(err){
+            console.log('Error:', err)
+        }
+    }
+
+    document.addEventListener('click', async function (event) {
+        if (event.target.classList.contains('addNotesButton')) { 
+            const categoryId = event.target.dataset.categoryId
+            const title = event.target.closest('section').querySelector('.notesTitle').value;
+            const content = event.target.closest('section').querySelector('.notesContent').value;
+
+            if (!title || !content) {
+                alert("Please fill in both Title and Content");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/notes/createnotes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        title, 
+                        content, 
+                        categoryId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Note added successfully!');
+                } else {
+                    alert('Failed to add note: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+    });
+
+
+    window.onload = function(){
+        getUsername()
+        getCategory();
+    }
+
+
 </script>
 </html>
