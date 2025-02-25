@@ -1,4 +1,5 @@
 const Category = require('../models/category')
+const Notes = require('../models/notes')
 
 const createCategory = async (req, res) => {
     try{
@@ -56,7 +57,7 @@ const getCategory = async (req, res) => {
         console.log(err)
         res.status(500).json({
             success: false,
-            message: 'Internal server error during category creation'
+            message: 'Internal server error during get category data '
         });
     }
 }
@@ -72,18 +73,22 @@ const deleteCategory = async (req, res) => {
         
         const userId = req.session.user.id
         const categoryId = req.body.id
-        const category = await Category.findOneAndDelete({ _id: categoryId, userId })
 
+        const deletedNotes = await Notes.deleteMany({ categoryId, userId }); // for delete notes database if parent got deleted
+        
+        const category = await Category.findOneAndDelete({ _id: categoryId, userId })
+        
         if(!category){
             return res.status(404).json({
                 success: false,
                 message: "false category"
             })
         }
+        
         console.log('Category Deleted:', category);
         res.status(200).json({
             success: true,
-            message: '"Category Deleted"'
+            message: `Category and ${deletedNotes.deletedCount} associated notes deleted`
         })
     }catch(err){
         res.status(500).json({

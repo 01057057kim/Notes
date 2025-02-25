@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
-    <link rel="stylesheet" href="appStyles.css">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
+<body onload="getNotes(categoryId)">
     <header>
         <h1>Notes App</h1>
         <label id="usernameLabel"></label>
@@ -16,7 +16,9 @@
         <input id="categoryName" type="text"><button id="newCategory">newCategory</button>
         <section id="posts">
         </section>
-        
+        <section id="notePosts">
+
+        </section>
     </header>
     <main>
         
@@ -100,7 +102,7 @@
             const data = await response.json();
             const postSection = document.getElementById('posts')
             postSection.innerHTML = ''
-
+            document.getElementById('notePosts').innerHTML = ''
             if (!data.success){
                 console.log('Error', data.message)
                 return
@@ -116,10 +118,13 @@
                     <input class="notesTitle" type="text"></br>
                     <label>Content<label>
                     <textarea class='notesContent'></textarea>
-                    <button class="addNotesButton" data-category-id="${category._id}">Add Notes</button>
+                    <button class="addNotesButton" data-category-id="${category._id}" >Add Notes</button>
                 </div>
+                <section id="notes-${category._id}"></section>
                 `
                 postSection.appendChild(categoryElement)
+
+                getNotes(category._id)
             });
 
         }catch(err){
@@ -148,6 +153,7 @@
         }
     }
 
+    //add note button using classList that contains addNotesButton
     document.addEventListener('click', async function (event) {
         if (event.target.classList.contains('addNotesButton')) { 
             const categoryId = event.target.dataset.categoryId
@@ -173,6 +179,8 @@
                 const data = await response.json();
                 if (data.success) {
                     alert('Note added successfully!');
+                    getNotes(categoryId);
+                   
                 } else {
                     alert('Failed to add note: ' + data.message);
                 }
@@ -182,10 +190,73 @@
         }
     });
 
+    async function getNotes(categoryId) {
+        try{
+            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })  // get query of categoryId on database category
+            const data = await response.json()
+            const postSection = document.getElementById(`notes-${categoryId}`)
 
+            if(postSection){
+                postSection.innerHTML = ''
+            }
+            if (!data.success){
+                console.log('Error', data.message)
+                return
+            }
+            if(data.notes.length == 0 ){ //check if there any note
+                if(postSection){
+                    postSection.innerHTML = 'No Note added'
+                }
+                return
+            }
+        
+            data.notes.forEach(function(notes) {
+                const notesElement = document.createElement('section')
+                notesElement.innerHTML = `
+                <div>
+                    <textarea> ${notes.title}</textarea> </br>
+                    <textarea>${notes.content}</textarea>
+                    <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
+                </div>
+                `
+                if(postSection){    
+                    postSection.appendChild(notesElement)
+                }
+            });
+            if(data.success){
+                console.log("Success get note data")
+            }else{
+                console.log("Error get notes data")
+            }
+        }catch(err){
+            console.log("Error: ", err)
+        }
+    }
+    
+    async function deleteNotes(noteId) {
+        try{
+            const response = await fetch('/notes/deletenotes',{
+                method: 'DELETE',
+                headers: {'Content-Type':'application/json'},
+                credentials: "include",
+                body: JSON.stringify({noteId})
+            })
+            const data = await response.json()
+            if(data.success){
+                alert('Succes Delete notes')
+                getCategory();
+            }else{
+                alert('Failed to delete')
+                console.log(err)
+            }
+        }catch(err){
+            console.log('Error:', err)
+        }
+    }
+    
     window.onload = function(){
         getUsername()
-        getCategory();
+        getCategory()
     }
 
 

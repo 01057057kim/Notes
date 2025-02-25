@@ -10,7 +10,7 @@ const notesSchema = new mongoose.Schema({
     },
     content:{
         type: String,
-        require: true,
+        required: true,
     },
     categoryId:{
         type: mongoose.Schema.Types.ObjectId, ref: 'Category', 

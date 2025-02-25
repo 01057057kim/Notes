@@ -1,0 +1,30 @@
+:root {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0px;
+}
+
+nav {
+    width: 100%;
+    background-color: antiquewhite;
+    display: flex;
+}
+
+ul{
+    width: 95%;
+    height: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+}
+
+.Logo {
+    width: 85%;
+}

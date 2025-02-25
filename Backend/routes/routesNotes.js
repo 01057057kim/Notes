@@ -1,7 +1,9 @@
 const express = require('express')
 const router = express.Router();
-const { createNotes } = require('../controllers/controllerNotes')
+const { createNotes, getNotes, deleteNotes } = require('../controllers/controllerNotes')
 
-router.post('/createnotes',createNotes )
+router.post('/createnotes', createNotes)
+router.get('/getnotes', getNotes)
+router.delete('/deletenotes', deleteNotes)
 
 module.exports = router;
