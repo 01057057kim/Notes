@@ -4,23 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
-    <h2>Sign Up</h2>
-    <form id="signup-form">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br><br>
-        
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br><br>
-        
-        <label for="confirm-password">Confirm Password:</label>
-        <input type="password" id="confirm-password" name="confirm-password" required><br><br>
-        
-        <button type="submit" >Sign up</button>
-        <button id="back">Back</button>
-    </form>
+    <main>
+        <div class="container">
+            <h2>Sign Up</h2>
+            <form id="signup-form">
+                <div class="container-username">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required minlength="3" maxlength="20"><br><br>
+                </div>
+                <div class="container-email">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required><br><br>
+                </div>
+                <div class="container-password">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required minlength="6" maxlength="24"><br><br>
+                    
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required minlength="6" maxlength="24"><br><br>
+                </div>
+                <div class="container-button">
+                    <button type="submit" >Sign up</button>
+                    <button id="back">Back</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <!--
+    <div class="email-popup">
+        hallo
+    </div>-->
 </body>
 <script>
     document.getElementById('back').addEventListener('click', () => {
@@ -30,9 +49,10 @@
     document.getElementById('signup-form').addEventListener('submit',  async function (event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
-
+        console.log(email)
         if (password !== confirmPassword) {
             alert('Password and Confirm Password do not match');
             console.log('Password and Confirm Password do not match');
@@ -46,6 +66,7 @@
                 },
                 body: JSON.stringify({
                     username,
+                    email,
                     password
                 })
             });

@@ -3,8 +3,7 @@ const account = require('../models/account');
 
 const signUp = async (req, res) => {
     try {
-        const { username, password } = req.body
-        
+        const { username, email, password } = req.body
         const existingAccount = await account.findOne({ username });
         
         if (existingAccount) {
@@ -19,6 +18,7 @@ const signUp = async (req, res) => {
 
         const newAccount = new account({
             username,
+            email,
             password: hash,
         });
         

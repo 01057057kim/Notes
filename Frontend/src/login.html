@@ -5,19 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="css/login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h2>Sign In</h2>
-    <form id="signin-form">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-    
-        <button type="submit">Sign In</button>
-        <button id="register">Sign Up</button>
-    </form>
+    <main>
+        <div class="container">
+            <h1>Sign In</h2>
+            <form id="signin-form">
+                <div class="container-username">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required minlength="3" maxlength="20">
+                </div>
+                <div class="container-password">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required minlength="6" maxlength="24">
+                </div>
+                <div class="container-button">
+                    <button type="submit">Sign In</button>
+                    <button id="register">Sign Up</button>
+                </div>
+            </form>
+        </div>
+    </main>
 </body>
 <script>
     document.getElementById('register').addEventListener('click', () => {
