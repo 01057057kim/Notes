@@ -3,50 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes App</title>
+    <title>NoteNest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
 </head>
-<body onload="getNotes(categoryId)">
-    <header>
-        <h1>Notes App</h1>
-        <label id="usernameLabel"></label>
-        <button id="signOut">Sign Out</button>
-        
-        <label>Category Name</label>
-        <input id="categoryName" type="text"><button id="newCategory">newCategory</button>
-        <section id="posts">
-        </section>
-        <section id="notePosts">
-
-        </section>
-    </header>
+<body>
     <main>
-        
+        <div class="container">
+            <div class="container-account">
+                <h1 class="container-account-logo signOut">NoteNest</h1>
+                <div class="container-account-div">
+                    <label class="container-account-label" id="usernameLabel"></label>
+                    <button class="container-account-button signOut" id="signOut">Sign Out</button>
+                </div>
+            </div>
+            <div class="container-category">
+                <div class="container-category-labbut">
+                    <label><b>Category</b></label>
+                    <button class="container-category-button" id="newCategory"> +</button>
+                </div>
+                <div class="container-category-div">
+                    <section id="posts">
+                    </section>
+                </div>
+            </div>
+        </div>
+        <section id="notePosts">
+        </section>
+
     </main>
 </body>
 <script>
-    document.getElementById('signOut').addEventListener('click', async function(){
-        try{
-            const response = await fetch('http://localhost:3000/account/signout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
+    const signOutElements = document.querySelectorAll('.signOut');
+    signOutElements.forEach(function(element) {
+        element.addEventListener('click', async function() {
+            try{
+                const response = await fetch('http://localhost:3000/account/signout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            alert(data.message);
-            
-            if(data.success){
-                localStorage.clear();
-                window.location.replace('/index.html');
+                alert(data.message);
+                
+                if(data.success){
+                    localStorage.clear();
+                    window.location.replace('/index.html');
+                }
+            } catch (error) {
+                console.log('Error:', error);
             }
-        } catch (error) {
-            console.log('Error:', error);
-        }
-    });
+        })
+    })
 
     async function getUsername(){
         try{
@@ -54,7 +68,7 @@
            const data = await response.json()
            
            if(data.success){
-                document.getElementById('usernameLabel').innerHTML = `Welcome ${data.username}`
+                document.getElementById('usernameLabel').innerHTML = `Welcome <em><b>${data.username}</b></em>`
            }else{
             console.log('Username Invalid', error);
            }
@@ -65,13 +79,9 @@
     }
     
     document.getElementById('newCategory').addEventListener('click', async function(){
-        const categoryName = document.getElementById('categoryName').value;
+        const categoryName = 'input here';
         try{
-            if(categoryName == '' || categoryName == null){
-                alert("Please fill Category Name")
-                return
-            }
-
+            
             const response = await fetch('http://localhost:3000/category/createcategory', {
                 method: 'POST',
                 headers: {
@@ -111,18 +121,27 @@
             data.categories.forEach(function(category) {
                 const categoryElement = document.createElement('section')
                 categoryElement.innerHTML = `
-                <label> ${category.categoryName}</label>
+                <textarea class="updateLiveCategoryName" data-category-id="${category._id}">${category.categoryName}</textarea>
                 <button onClick="deleteCategory('${category._id}')">Delete</button> </br>
-                <div>
-                    <label>Title<label>
-                    <input class="notesTitle" type="text"></br>
-                    <label>Content<label>
-                    <textarea class='notesContent'></textarea>
+                <div class="addNote">
                     <button class="addNotesButton" data-category-id="${category._id}" >Add Notes</button>
+                    <div class="addNote-popup">
+                        <label>Title<label>
+                        <input class="notesTitle" type="text"></br>
+                        <label>Content<label>
+                        <textarea class='notesContent'></textarea>   
+                    </div>
                 </div>
                 <section id="notes-${category._id}"></section>
                 `
                 postSection.appendChild(categoryElement)
+
+                const textarea = categoryElement.querySelector('.updateLiveCategoryName');
+                    textarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const categoryId = event.target.dataset.categoryId;
+                        updateCategory(categoryId, newValue);
+                    });
 
                 getNotes(category._id)
             });
@@ -214,13 +233,27 @@
                 const notesElement = document.createElement('section')
                 notesElement.innerHTML = `
                 <div>
-                    <textarea>${notes.title}</textarea> </br>
-                    <textarea>${notes.content}</textarea>
+                    <textarea class="updateLiveTitle" data-category-id="${notes._id}">${notes.title}</textarea> </br>
+                    <textarea class="updateLiveContent" data-category-id="${notes._id}">${notes.content}</textarea>
                     <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
                 </div>
                 `
                 if(postSection){    
                     postSection.appendChild(notesElement)
+                    
+                    const titleTextarea = notesElement.querySelector('.updateLiveTitle');
+                    const contentTextarea = notesElement.querySelector('.updateLiveContent');
+                    
+                    titleTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesTitle(noteId, newValue);
+                    });
+                    contentTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesContent(noteId, newValue);
+                    });
                 }
             });
             if(data.success){
@@ -254,6 +287,60 @@
         }
     }
     
+    async function updateCategory(categoryId, newValue) {
+        try {
+            const response = await fetch('/category/updatecategory', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categoryId, newValue })
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log('Category updated successfully');
+            } else {
+                console.log('Failed to update category:', data.message);
+            }
+        } catch (err) {
+            console.log('Update category failed:', err);
+        }
+    }
+
+    async function updateNotesTitle(noteId, newValue) {
+        try {
+            const response = await fetch('/notes/updatenotes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ noteId, newTitle: newValue })
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log('Note title updated successfully');
+            } else {
+                console.log('Failed to update note title:', data.message);
+            }
+        } catch (err) {
+            console.log('Update note title failed:', err);
+        }
+    }
+
+    async function updateNotesContent(noteId, newValue) {
+        try {
+            const response = await fetch('/notes/updatenotes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ noteId, newContent: newValue })
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log('Note content updated successfully');
+            } else {
+                console.log('Failed to update note content:', data.message);
+            }
+        } catch (err) {
+            console.log('Update note content failed:', err);
+        }
+    }
+
     window.onload = function(){
         getUsername()
         getCategory()

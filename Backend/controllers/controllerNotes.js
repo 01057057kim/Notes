@@ -112,8 +112,64 @@ const deleteNotes = async (req, res) =>{
     }
 }
 
+const updateNotes = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+
+        const userId = req.session.user.id;
+        const { noteId, newTitle, newContent } = req.body;
+
+        if(!noteId){
+            return res.status(400).json({
+                success: false,
+                message: "false Notes ID"
+            })
+        }
+
+        const updateFields = {};
+        if (newTitle !== undefined) {
+            updateFields.title = newTitle;
+        }
+
+        if (newContent !== undefined) {
+            updateFields.content = newContent;
+        }
+        
+        const updatedNote = await Notes.findOneAndUpdate(
+            { _id: noteId, userId },
+            updateFields,
+            { new: true }
+        );
+
+        if (!updatedNote) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Notes updated successfully',
+            data: category
+        });
+    } catch (err) {
+        console.error('Error updating Notes:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating Notes'
+        });
+    }
+}
+
 module.exports = {
     createNotes,
     getNotes,
     deleteNotes,
+    updateNotes,
 }
