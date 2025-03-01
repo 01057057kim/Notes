@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/interactjs"></script>
+    <link rel="icon" href="/img/2.png" type="image/png">
 </head>
 <body>
     <main>
@@ -30,11 +32,36 @@
                 </div>
             </div>
         </div>
-        <section id="notePosts">
+        <section id="notePosts"> <!--getCategory parent and getNotes parent. TASK seperate the child diff parent-->
         </section>
-
     </main>
 </body>
+ <!--################################################################################-->
+<script>
+    interact('.draggable')
+      .draggable({
+        inertia: true,
+        modifiers: [
+          interact.modifiers.restrictRect({
+            restriction: 'parent',
+            endOnly: true
+          })
+        ],
+        autoScroll: true,
+        listeners: { move: dragMoveListener }
+      });
+  
+    function dragMoveListener(event) {
+      var target = event.target;
+      var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+      var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+  
+      target.style.transform = `translate(${x}px, ${y}px)`;
+      target.setAttribute('data-x', x);
+      target.setAttribute('data-y', y);
+    }
+  </script>
+<!--################################################################################-->
 <script>
     const signOutElements = document.querySelectorAll('.signOut');
     signOutElements.forEach(function(element) {
@@ -125,14 +152,9 @@
                 <button onClick="deleteCategory('${category._id}')">Delete</button> </br>
                 <div class="addNote">
                     <button class="addNotesButton" data-category-id="${category._id}" >Add Notes</button>
-                    <div class="addNote-popup">
-                        <label>Title<label>
-                        <input class="notesTitle" type="text"></br>
-                        <label>Content<label>
-                        <textarea class='notesContent'></textarea>   
-                    </div>
                 </div>
                 <section id="notes-${category._id}"></section>
+                
                 `
                 postSection.appendChild(categoryElement)
 
@@ -176,8 +198,9 @@
     document.addEventListener('click', async function (event) {
         if (event.target.classList.contains('addNotesButton')) { 
             const categoryId = event.target.dataset.categoryId
-            const title = event.target.closest('section').querySelector('.notesTitle').value;
-            const content = event.target.closest('section').querySelector('.notesContent').value;
+            const timestamp = new Date().toLocaleString();
+            const title = `New Note (${timestamp})`;
+            const content = `Add your content here...`;
 
             if (!title || !content) {
                 alert("Please fill in both Title and Content");
@@ -232,12 +255,13 @@
             data.notes.forEach(function(notes) {
                 const notesElement = document.createElement('section')
                 notesElement.innerHTML = `
-                <div>
-                    <textarea class="updateLiveTitle" data-category-id="${notes._id}">${notes.title}</textarea> </br>
-                    <textarea class="updateLiveContent" data-category-id="${notes._id}">${notes.content}</textarea>
+                <section class="note-section draggable">
+                    <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                    <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
                     <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                </div>
+                </section>
                 `
+                // ↑↑↑↑ section no have own parent, its same with id:notePosts parent. same section with getCategory().TASK make it seperate ↑↑↑↑
                 if(postSection){    
                     postSection.appendChild(notesElement)
                     
@@ -310,6 +334,7 @@
             const response = await fetch('/notes/updatenotes', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ noteId, newTitle: newValue })
             });
             const data = await response.json();
@@ -328,6 +353,7 @@
             const response = await fetch('/notes/updatenotes', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ noteId, newContent: newValue })
             });
             const data = await response.json();
@@ -341,11 +367,11 @@
         }
     }
 
-    window.onload = function(){
-        getUsername()
-        getCategory()
-    }
-
-
+    window.onload = function () {
+    getUsername();
+    getCategory();
+    };
 </script>
 </html>
+
+<!-- Create new database for save position draggable section-->

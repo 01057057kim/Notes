@@ -12,7 +12,7 @@ const setupMiddlewares = (app) => {
     app.use(bodyParser.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(express.static(path.join(__dirname, '../../Frontend/src')));
-
+    app.use(express.static(path.join(__dirname, '../../Frontend/src/img')));
     app.use(session({
         secret: 'secret',
         resave: false,

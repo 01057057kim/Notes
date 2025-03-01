@@ -107,7 +107,7 @@ main {
 .container-category {
     display: flex;
     flex-direction: column;
-    border: 1px solid black;
+    /**border: 1px solid black;**/
     padding: 0 1rem;
 }
 
@@ -126,7 +126,7 @@ main {
 }
 
 .container-category-div {
-    border: 1px solid black;
+    /**border: 1px solid black;**/
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -137,21 +137,30 @@ main {
     position: relative;
 }
 
-.addNote-popup {
-    position: fixed;
-    width: 300px;
-    background-color: aquamarine;
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
-    z-index: 1000; 
-    padding: 20px;
-}
-
 .addNotesButton {
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
     padding: 2rem;
     border-radius: 100%;
+}
+/**############################################################################################################################**/
+.notePost-div{
+    position: relative;
+    border: 1px solid red;
+    width: 1000px;
+    height: 300px;
+}
+
+.note-section {
+    width: 250px;
+    min-height: 6.5em;
+    margin: 1rem 0 0 1rem;
+    background-color: #29e;
+    color: white;
+    border-radius: 0.75em;
+    padding: 4%;
+    touch-action: none;
+    user-select: none;
+    transform: translate(0px, 0px);
 }
