@@ -12,55 +12,94 @@
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
 <body>
-    <main>
-        <div class="container">
-            <div class="container-account">
-                <h1 class="container-account-logo signOut">NoteNest</h1>
-                <div class="container-account-div">
-                    <label class="container-account-label" id="usernameLabel"></label>
-                    <button class="container-account-button signOut" id="signOut">Sign Out</button>
-                </div>
-            </div>
-            <div class="container-category">
-                <div class="container-category-labbut">
-                    <label><b>Category</b></label>
-                    <button class="container-category-button" id="newCategory"> +</button>
-                </div>
-                <div class="container-category-div">
-                    <section id="posts">
-                    </section>
-                </div>
+    <div class="container">
+        <div class="container-account">
+            <h1 class="container-account-logo signOut">NoteNest</h1>
+            <div class="container-account-div">
+                <label class="container-account-label" id="usernameLabel"></label>
+                <button class="container-account-button signOut" id="signOut">Sign Out</button>
             </div>
         </div>
-        <section id="notePosts"> <!--getCategory parent and getNotes parent. TASK seperate the child diff parent-->
-        </section>
-    </main>
+        <div class="container-category">
+            <div class="container-category-labbut">
+                <label><b>Category</b></label>
+                <button class="container-category-button" id="newCategory"> +</button>
+            </div>
+            <div class="container-category-div">
+                <section id="posts">
+                </section>
+            </div>
+        </div>
+    </div>
+    <button class="toggle-sidebar" id="toggleSidebar">☰</button>
+    <div class="notePosts" id="notePosts"> 
+    </div>
 </body>
  <!--################################################################################-->
-<script>
-    interact('.draggable')
-      .draggable({
+ <script>
+    const toggleButton = document.getElementById('toggleSidebar');
+    const sidebar = document.querySelector('.container');
+    
+    toggleButton.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+    });
+    interact('.resize-drag')
+        .resizable({
+            edges: { top: true, left: true, bottom: true, right: true },
+            listeners: {
+            move: function (event) {
+                let { x, y } = event.target.dataset
+
+                x = (parseFloat(x) || 0) + event.deltaRect.left
+                y = (parseFloat(y) || 0) + event.deltaRect.top
+
+                Object.assign(event.target.style, {
+                width: `${event.rect.width}px`,
+                height: `${event.rect.height}px`,
+                transform: `translate(${x}px, ${y}px)`
+                })
+
+                Object.assign(event.target.dataset, { x, y })
+            }
+        },
+        modifiers: [
+            // minimum size
+            interact.modifiers.restrictSize({
+                min: { width: 250, height: 250 }
+            })
+            ],
+
+            inertia: true
+        })
+    .draggable({
         inertia: true,
         modifiers: [
-          interact.modifiers.restrictRect({
-            restriction: 'parent',
+        interact.modifiers.restrictRect({
+            restriction: 'body',
             endOnly: true
-          })
+        })
         ],
         autoScroll: true,
-        listeners: { move: dragMoveListener }
-      });
-  
-    function dragMoveListener(event) {
-      var target = event.target;
-      var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-      var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-  
-      target.style.transform = `translate(${x}px, ${y}px)`;
-      target.setAttribute('data-x', x);
-      target.setAttribute('data-y', y);
-    }
-  </script>
+        listeners: {
+        move(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            
+            target.style.zIndex = '1000';
+        },
+        end(event) {
+            event.target.style.zIndex = '1';
+        }
+        }
+    })
+</script>
+
 <!--################################################################################-->
 <script>
     const signOutElements = document.querySelectorAll('.signOut');
@@ -134,41 +173,46 @@
     });
 
     async function getCategory() {
-        try{
+        try {
             const response = await fetch('/category/getcategory', {credentials: 'include'})
             const data = await response.json();
             const postSection = document.getElementById('posts')
+            const notePostsSection = document.getElementById('notePosts')
             postSection.innerHTML = ''
-            document.getElementById('notePosts').innerHTML = ''
-            if (!data.success){
+            notePostsSection.innerHTML = ''
+            
+            if (!data.success) {
                 console.log('Error', data.message)
                 return
             }
 
             data.categories.forEach(function(category) {
                 const categoryElement = document.createElement('section')
+                categoryElement.className = 'category-item'
                 categoryElement.innerHTML = `
-                <textarea class="updateLiveCategoryName" data-category-id="${category._id}">${category.categoryName}</textarea>
-                <button onClick="deleteCategory('${category._id}')">Delete</button> </br>
-                <div class="addNote">
-                    <button class="addNotesButton" data-category-id="${category._id}" >Add Notes</button>
-                </div>
-                <section id="notes-${category._id}"></section>
-                
+                    <textarea class="updateLiveCategoryName" data-category-id="${category._id}">${category.categoryName}</textarea>
+                    <button class="deleteCategory" onClick="deleteCategory('${category._id}')">Delete</button> </br>
+                    <div class="addNote">
+                        <button class="addNotesButton" data-category-id="${category._id}">Add Notes</button>
+                    </div>
                 `
                 postSection.appendChild(categoryElement)
-
                 const textarea = categoryElement.querySelector('.updateLiveCategoryName');
-                    textarea.addEventListener('input', (event) => {
-                        const newValue = event.target.value;
-                        const categoryId = event.target.dataset.categoryId;
-                        updateCategory(categoryId, newValue);
-                    });
+                textarea.addEventListener('input', (event) => {
+                    const newValue = event.target.value;
+                    const categoryId = event.target.dataset.categoryId;
+                    updateCategory(categoryId, newValue);
+                });
+
+                const notesContainer = document.createElement('section')
+                notesContainer.id = `notes-${category._id}`
+                notesContainer.className = 'notes-container'
+                notePostsSection.appendChild(notesContainer)
 
                 getNotes(category._id)
             });
 
-        }catch(err){
+        } catch(err) {
             console.log(err)
         }
     }
@@ -198,14 +242,13 @@
     document.addEventListener('click', async function (event) {
         if (event.target.classList.contains('addNotesButton')) { 
             const categoryId = event.target.dataset.categoryId
-            const timestamp = new Date().toLocaleString();
-            const title = `New Note (${timestamp})`;
-            const content = `Add your content here...`;
+            const times = new Date().toLocaleString();
+            const title = `Add your Title here...`;
+            const content = `Add your Content here...`;
 
-            if (!title || !content) {
-                alert("Please fill in both Title and Content");
-                return;
-            }
+            const uniqueId = Date.now();
+            const uniqueTitle = title + '\u200B'.repeat(uniqueId % 1000);
+            const uniqueContent = content + '\u200B'.repeat(uniqueId % 1000);
 
             try {
                 const response = await fetch('http://localhost:3000/notes/createnotes', {
@@ -213,8 +256,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ 
-                        title, 
-                        content, 
+                        title: uniqueTitle, 
+                        content: uniqueContent,
+                        times, 
                         categoryId })
                 });
 
@@ -233,37 +277,32 @@
     });
 
     async function getNotes(categoryId) {
-        try{
-            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })  // get query of categoryId on database category
+        try {
+            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
             const data = await response.json()
-            const postSection = document.getElementById(`notes-${categoryId}`)
-
-            if(postSection){
-                postSection.innerHTML = ''
+            const notesContainer = document.getElementById(`notes-${categoryId}`)
+            
+            if(notesContainer){
+                notesContainer.innerHTML = ''
             }
-            if (!data.success){
+
+            if (!data.success) {
                 console.log('Error', data.message)
                 return
             }
-            if(data.notes.length == 0 ){ //check if there any note
-                if(postSection){
-                    postSection.innerHTML = 'No Note added'
-                }
-                return
-            }
-        
+            
             data.notes.forEach(function(notes) {
                 const notesElement = document.createElement('section')
                 notesElement.innerHTML = `
-                <section class="note-section draggable">
-                    <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                    <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
-                    <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                </section>
+                    <section class="note-section resize-drag">
+                        <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                        <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
+                        <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
+                    </section>
                 `
-                // ↑↑↑↑ section no have own parent, its same with id:notePosts parent. same section with getCategory().TASK make it seperate ↑↑↑↑
-                if(postSection){    
-                    postSection.appendChild(notesElement)
+                
+                if (notesContainer) {    
+                    notesContainer.appendChild(notesElement)
                     
                     const titleTextarea = notesElement.querySelector('.updateLiveTitle');
                     const contentTextarea = notesElement.querySelector('.updateLiveContent');
@@ -273,6 +312,7 @@
                         const noteId = event.target.dataset.noteId;
                         updateNotesTitle(noteId, newValue);
                     });
+                    
                     contentTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
@@ -280,12 +320,13 @@
                     });
                 }
             });
-            if(data.success){
+            
+            if (data.success) {
                 console.log("Success get note data")
-            }else{
+            } else {
                 console.log("Error get notes data")
             }
-        }catch(err){
+        } catch(err) {
             console.log("Error: ", err)
         }
     }
@@ -374,4 +415,4 @@
 </script>
 </html>
 
-<!-- Create new database for save position draggable section-->
+<!--create databae for save the position note and note size-->

@@ -12,6 +12,10 @@ const notesSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    times:{
+        type: String,
+        require: true,
+    },
     categoryId:{
         type: mongoose.Schema.Types.ObjectId, ref: 'Category', 
         required: true,
@@ -24,7 +28,7 @@ const notesSchema = new mongoose.Schema({
     {timestamps : true}
 )
 
-notesSchema.index( {title: 1, content: 1, categoryId: 1, userId: 1},{ unique: true})
+notesSchema.index( {title: 1, content: 1, times: 1 , categoryId: 1, userId: 1},{ unique: true})
 
 const Notes = notesDB.model('Notes', notesSchema)
 module.exports = Notes 

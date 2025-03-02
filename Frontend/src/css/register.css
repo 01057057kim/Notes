@@ -1,8 +1,8 @@
-:root {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    width: 100%;
+    font-family: 'Lora', serif;
 }
 
 body{
@@ -48,6 +48,7 @@ form {
     display: flex;
     flex-direction: column;
     width: 70%;
+    margin-top: 10px;
 }
 
 .container-username {
@@ -59,25 +60,25 @@ form {
     padding-bottom: 10px;
 }
 
-.container-username input {
+.container input {
     border-radius: 5px;
     background: rgb(249, 250, 250);
     border: 1px solid rgb(181, 189, 196);
     font-size: 16px;
-    height: 1rem;
     line-height: 24px;
-    padding: 7px 4px;
+    padding: 5px 8px;
+    height: 35px;
     color: rgb(8, 9, 10);
     box-shadow: none;
 }
 
-.container-username input:focus{
+.container input:focus{
     background-color: #fff;
     border-color: #3b49df;
     box-shadow: 1px 1px 0 #3b49df;
 }
 
-.container-username input:hover {
+.container input:hover {
     transition: all .1s ease;
     box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FF9987;
 }
@@ -91,28 +92,6 @@ form {
     padding-bottom: 10px;
 }
 
-.container-email input {
-    border-radius: 5px;
-    background: rgb(249, 250, 250);
-    border: 1px solid rgb(181, 189, 196);
-    font-size: 16px;
-    height: 1rem;
-    line-height: 24px;
-    padding: 7px 4px;
-    color: rgb(8, 9, 10);
-    box-shadow: none;
-}
-
-.container-email input:focus{
-    background-color: #fff;
-    border-color: #3b49df;
-    box-shadow: 1px 1px 0 #3b49df;
-}
-
-.container-email input:hover {
-    transition: all .1s ease;
-    box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FF9987;
-}
 
 .container-password {
     display: flex;
@@ -122,29 +101,6 @@ form {
 
 .container-password label {
     padding-bottom: 10px;
-}
-
-.container-password input {
-    border-radius: 5px;
-    background: rgb(249, 250, 250);
-    border: 1px solid rgb(181, 189, 196);
-    font-size: 16px;
-    height: 1rem;
-    line-height: 24px;
-    padding: 7px 8px;
-    color: rgb(8, 9, 10);
-    box-shadow: none;
-}
-
-.container-password input:focus{
-    background-color: #fff;
-    border-color: #3b49df;
-    box-shadow: 1px 1px 0 #3b49df;
-}
-
-.container-password input:hover {
-    transition: all .1s ease;
-    box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FF9987;
 }
 
 .container-button{

@@ -9,7 +9,7 @@ const createNotes = async (req, res) =>{
                 message: 'User not logged in'
             });
         }
-        const { title, content, categoryId } = req.body
+        const { title, content, times, categoryId } = req.body
         const userId = req.session.user.id
 
         const category = await Category.findOne({ _id: categoryId, userId })
@@ -19,10 +19,10 @@ const createNotes = async (req, res) =>{
                 message: "false category"
             })
         }
-
         const newNotes = new Notes({
             title,
             content,
+            times,
             categoryId,
             userId,
         })
