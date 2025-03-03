@@ -23,12 +23,30 @@ const notesSchema = new mongoose.Schema({
     userId:{
         type: mongoose.Schema.Types.ObjectId, ref: 'Account', 
         required: true,
+    },
+    position: {
+        x: {
+            type: Number,
+            default: 0
+        },
+        y: {
+            type: Number,
+            default: 0
+        },
+        width:{
+            type: Number,
+            default:250
+        },
+        height:{
+            type: Number,
+            default: 250
+        },
     }
     },
     {timestamps : true}
 )
 
-notesSchema.index( {title: 1, content: 1, times: 1 , categoryId: 1, userId: 1},{ unique: true})
+notesSchema.index( {title: 1, content: 1, times: 1 , categoryId: 1, userId: 1, position: 1},{ unique: true})
 
 const Notes = notesDB.model('Notes', notesSchema)
 module.exports = Notes 

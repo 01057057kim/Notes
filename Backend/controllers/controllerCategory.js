@@ -12,14 +12,6 @@ const createCategory = async (req, res) => {
 
         const { categoryName } = req.body
         const userId = req.session.user.id
-        const existingCategory = await Category.findOne({categoryName, userId})
-
-        if(existingCategory){
-            return res.status(400).json({
-                success: false,
-                message: 'Category already exists'
-            });
-        }
 
         const newCategory = new Category({
             categoryName,
@@ -109,7 +101,7 @@ const updateCategory = async (req, res) => {
 
         const userId = req.session.user.id;
         const { categoryId, newValue } = req.body;
-
+        
         const category = await Category.findOneAndUpdate(
             { _id: categoryId, userId },
             { categoryName: newValue },

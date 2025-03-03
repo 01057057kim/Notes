@@ -43,6 +43,7 @@
     toggleButton.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
     });
+
     interact('.resize-drag')
         .resizable({
             edges: { top: true, left: true, bottom: true, right: true },
@@ -60,6 +61,12 @@
                 })
 
                 Object.assign(event.target.dataset, { x, y })
+            },
+            end: function(event) {
+                const noteId = event.target.querySelector('textarea').dataset.noteId;
+                if (noteId) {
+                    saveNotePosition(noteId, event.target);
+                }
             }
         },
         modifiers: [
@@ -93,15 +100,22 @@
             
             target.style.zIndex = '1000';
         },
-        end(event) {
-            event.target.style.zIndex = '1';
-        }
+            end(event) {
+                event.target.style.zIndex = '1';
+                
+                const noteId = event.target.querySelector('textarea').dataset.noteId;
+                if (noteId) {
+                    saveNotePosition(noteId, event.target);
+                }
+            }
         }
     })
+    
 </script>
 
 <!--################################################################################-->
 <script>
+    let selectedCategoryId = null;
     const signOutElements = document.querySelectorAll('.signOut');
     signOutElements.forEach(function(element) {
         element.addEventListener('click', async function() {
@@ -145,9 +159,10 @@
     }
     
     document.getElementById('newCategory').addEventListener('click', async function(){
-        const categoryName = 'input here';
+        const categoryName = 'Add your Category here...';
+        const uniqueId = Date.now();
+        const uniqueCategoryName = categoryName + '\u200B'.repeat(uniqueId % 1000);
         try{
-            
             const response = await fetch('http://localhost:3000/category/createcategory', {
                 method: 'POST',
                 headers: {
@@ -155,17 +170,64 @@
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    categoryName
+                    categoryName: uniqueCategoryName,
                 })
             });
 
             const data = await response.json();
-
-            alert(data.message);
             
             if(data.success){
                 console.log('Category created');
-                location.reload();
+                
+                // Modify getCategory to return the categories data
+                const categoriesData = await getCategory();
+                
+                if (categoriesData && categoriesData.categories && categoriesData.categories.length > 0) {
+                    // Find the newly created category (it should be the one with our unique name)
+                    const newCategory = categoriesData.categories.find(cat => 
+                        cat.categoryName === uniqueCategoryName);
+                    
+                    if (newCategory) {
+                        // Set this as the selected category
+                        selectedCategoryId = newCategory._id;
+                        
+                        // Hide all note containers
+                        const allNoteContainers = document.querySelectorAll('.notes-container');
+                        allNoteContainers.forEach(container => {
+                            container.style.display = 'none';
+                        });
+                        
+                        // Show only the selected category's notes
+                        const selectedNotesContainer = document.getElementById(`notes-${selectedCategoryId}`);
+                        if (selectedNotesContainer) {
+                            selectedNotesContainer.style.display = 'block';
+                        }
+                        
+                        // Update visual selection
+                        const allCategories = document.querySelectorAll('.category-item');
+                        allCategories.forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        
+                        // Find and select the new category element
+                        const newCategoryItem = document.querySelector(`.updateLiveCategoryName[data-category-id="${selectedCategoryId}"]`).closest('.category-item');
+                        if (newCategoryItem) {
+                            newCategoryItem.classList.add('selected');
+                            
+                            // Focus and select the text
+                            const textarea = newCategoryItem.querySelector('.updateLiveCategoryName');
+                            if (textarea) {
+                                textarea.focus();
+                                textarea.select();
+                            }
+                        }
+                        
+                        // Update add notes button
+                        updateAddNotesButton();
+                    }
+                }
+            } else {
+                alert(data.message);
             }
         } catch (error) {
             console.log('Error create category', error);
@@ -174,29 +236,35 @@
 
     async function getCategory() {
         try {
-            const response = await fetch('/category/getcategory', {credentials: 'include'})
+            const response = await fetch('/category/getcategory', {credentials: 'include'});
             const data = await response.json();
-            const postSection = document.getElementById('posts')
-            const notePostsSection = document.getElementById('notePosts')
-            postSection.innerHTML = ''
-            notePostsSection.innerHTML = ''
+            const postSection = document.getElementById('posts');
+            const notePostsSection = document.getElementById('notePosts');
+            postSection.innerHTML = '';
+            notePostsSection.innerHTML = '';
             
             if (!data.success) {
-                console.log('Error', data.message)
-                return
+                console.log('Error', data.message);
+                return null;
+            }
+
+            // Only set selectedCategoryId if it's not already set
+            if (!selectedCategoryId && data.categories.length > 0) {
+                selectedCategoryId = data.categories[0]._id;
             }
 
             data.categories.forEach(function(category) {
-                const categoryElement = document.createElement('section')
-                categoryElement.className = 'category-item'
+                const categoryElement = document.createElement('section');
+                categoryElement.className = 'category-item';
                 categoryElement.innerHTML = `
                     <textarea class="updateLiveCategoryName" data-category-id="${category._id}">${category.categoryName}</textarea>
                     <button class="deleteCategory" onClick="deleteCategory('${category._id}')">Delete</button> </br>
+                    <button class="select">Select</button>
                     <div class="addNote">
                         <button class="addNotesButton" data-category-id="${category._id}">Add Notes</button>
                     </div>
-                `
-                postSection.appendChild(categoryElement)
+                `;
+                postSection.appendChild(categoryElement);
                 const textarea = categoryElement.querySelector('.updateLiveCategoryName');
                 textarea.addEventListener('input', (event) => {
                     const newValue = event.target.value;
@@ -204,16 +272,28 @@
                     updateCategory(categoryId, newValue);
                 });
 
-                const notesContainer = document.createElement('section')
-                notesContainer.id = `notes-${category._id}`
-                notesContainer.className = 'notes-container'
-                notePostsSection.appendChild(notesContainer)
+                const notesContainer = document.createElement('section');
+                notesContainer.id = `notes-${category._id}`;
+                notesContainer.className = 'notes-container';
+                notesContainer.style.display = category._id === selectedCategoryId ? 'block' : 'none';
+                notePostsSection.appendChild(notesContainer);
 
-                getNotes(category._id)
+                getNotes(category._id);
             });
 
+            // Mark selected category
+            const selectedCategory = document.querySelector(`.updateLiveCategoryName[data-category-id="${selectedCategoryId}"]`);
+            if (selectedCategory) {
+                selectedCategory.closest('.category-item').classList.add('selected');
+            }
+            
+            updateAddNotesButton();
+            
+            return data; // Return the data for further processing
+
         } catch(err) {
-            console.log(err)
+            console.log(err);
+            return null;
         }
     }
 
@@ -238,43 +318,41 @@
         }
     }
 
-    //add note button using classList that contains addNotesButton
     document.addEventListener('click', async function (event) {
-        if (event.target.classList.contains('addNotesButton')) { 
-            const categoryId = event.target.dataset.categoryId
-            const times = new Date().toLocaleString();
-            const title = `Add your Title here...`;
-            const content = `Add your Content here...`;
+    if (event.target.classList.contains('addNotesButton')) { 
+        const categoryId = selectedCategoryId || event.target.dataset.categoryId;
+        const times = new Date().toLocaleString();
+        const title = `Add your Title here...`
+        const content = `Add your Content here...`;
 
-            const uniqueId = Date.now();
-            const uniqueTitle = title + '\u200B'.repeat(uniqueId % 1000);
-            const uniqueContent = content + '\u200B'.repeat(uniqueId % 1000);
+        const uniqueId = Date.now();
+        const uniqueTitle = title + '\u200B'.repeat(uniqueId % 1000);
+        const uniqueContent = content + '\u200B'.repeat(uniqueId % 1000);
+        try {
+            const response = await fetch('http://localhost:3000/notes/createnotes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    title: uniqueTitle, 
+                    content: uniqueContent,
+                    times, 
+                    categoryId })
+            })
 
-            try {
-                const response = await fetch('http://localhost:3000/notes/createnotes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ 
-                        title: uniqueTitle, 
-                        content: uniqueContent,
-                        times, 
-                        categoryId })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('Note added successfully!');
-                    getNotes(categoryId);
-                   
-                } else {
-                    alert('Failed to add note: ' + data.message);
-                }
-            } catch (err) {
-                console.error('Error:', err);
+            const data = await response.json();
+            if (data.success) {
+                alert('Note added successfully!');
+                getNotes(categoryId)
+               
+            } else {
+                alert('Failed to add note: ' + data.message);
             }
+        } catch (err) {
+            console.error('Error:', err);
         }
-    });
+    }
+});
 
     async function getNotes(categoryId) {
         try {
@@ -293,8 +371,13 @@
             
             data.notes.forEach(function(notes) {
                 const notesElement = document.createElement('section')
+                const positionStyle = notes.position ? 
+                    `style="width: ${notes.position.width || 250}px; height: ${notes.position.height || 250}px; transform: translate(${notes.position.x || 0}px, ${notes.position.y || 0}px);"` : '';
+                const positionData = notes.position ? 
+                    `data-x="${notes.position.x || 0}" data-y="${notes.position.y || 0}"` : '';
+                    
                 notesElement.innerHTML = `
-                    <section class="note-section resize-drag">
+                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
                         <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
                         <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
                         <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
@@ -377,12 +460,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ noteId, newTitle: newValue })
-            });
+            })
             const data = await response.json();
             if (data.success) {
                 console.log('Note title updated successfully');
             } else {
-                console.log('Failed to update note title:', data.message);
+                console.log('Failed to update note title:', data.message)
             }
         } catch (err) {
             console.log('Update note title failed:', err);
@@ -408,11 +491,76 @@
         }
     }
 
-    window.onload = function () {
-    getUsername();
-    getCategory();
+    async function saveNotePosition(noteId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width);
+            const height = parseFloat(element.style.height);
+            
+            const position = { x, y, width, height };
+            
+            const response = await fetch('/notes/updatenotesposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ noteId, position })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                console.log('sucess update notes position');
+            } else {
+                console.log('failed update notes position:', data.message);
+            }
+        } catch (err) {
+            console.log('update notes failed:', err);
+        }
+    }
+
+    function updateAddNotesButton() {
+        const addNotesButtons = document.querySelectorAll('.addNotesButton');
+        addNotesButtons.forEach(button => {
+            button.dataset.categoryId = selectedCategoryId;
+        });
+    }
+
+    document.addEventListener('click', function(event) {
+    const categoryItem = event.target.closest('.category-item');
+        
+        if (categoryItem && 
+            !event.target.classList.contains('updateLiveCategoryName') && 
+            !event.target.classList.contains('deleteCategory') &&
+            !event.target.classList.contains('addNotesButton')) {
+            
+            const categoryId = categoryItem.querySelector('[data-category-id]').dataset.categoryId;
+            selectedCategoryId = categoryId;
+            
+            const allNoteContainers = document.querySelectorAll('.notes-container');
+            allNoteContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            const selectedNotesContainer = document.getElementById(`notes-${categoryId}`);
+            if (selectedNotesContainer) {
+                selectedNotesContainer.style.display = 'block';
+            }
+            
+            const allCategoryItems = document.querySelectorAll('.category-item');
+            allCategoryItems.forEach(item => {
+                item.classList.remove('selected');
+            });
+            categoryItem.classList.add('selected');
+            
+            updateAddNotesButton();
+        }
+    });
+
+
+    window.onload = function() {
+        getUsername();
+        getCategory();
+    
     };
 </script>
 </html>
-
-<!--create databae for save the position note and note size-->

@@ -167,9 +167,56 @@ const updateNotes = async (req, res) => {
     }
 }
 
+const updateNotesPosition = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+
+        const userId = req.session.user.id;
+        const { noteId, position } = req.body;
+
+        if(!noteId){
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Notes ID"
+            });
+        }
+
+        const updatedNote = await Notes.findOneAndUpdate(
+            { _id: noteId, userId },
+            { position },
+            { new: true }
+        );
+
+        if (!updatedNote) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Notes position updated successfully',
+            data: updatedNote
+        });
+    } catch (err) {
+        console.error('Error updating Notes position:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating Notes position'
+        });
+    }
+};
+
 module.exports = {
     createNotes,
     getNotes,
     deleteNotes,
     updateNotes,
+    updateNotesPosition,
 }
