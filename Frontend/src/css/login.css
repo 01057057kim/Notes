@@ -1,3 +1,10 @@
+:root {
+    --primary-color: #7A122D;
+    --secondary-color: #FF9987;
+    --background-color: #F8EDED;
+    --text-color: #2C3E50;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,31 +12,41 @@
     font-family: 'Lora', serif;
 }
 
-body{
+body {
     margin: 0;
     width: 100%;
     min-height: 100vh;
     display: flex;
     justify-content: start;
     align-items: center;
-    background-color: #7A122D;
-    background-image:  linear-gradient(30deg, #FF9987 12%, transparent 12.5%, transparent 87%, #FF9987 87.5%, #FF9987), linear-gradient(150deg, #FF9987 12%, transparent 12.5%, transparent 87%, #FF9987 87.5%, #FF9987), linear-gradient(30deg, #FF9987 12%, transparent 12.5%, transparent 87%, #FF9987 87.5%, #FF9987), linear-gradient(150deg, #FF9987 12%, transparent 12.5%, transparent 87%, #FF9987 87.5%, #FF9987), linear-gradient(60deg, #FF998777 25%, transparent 25.5%, transparent 75%, #FF998777 75%, #FF998777), linear-gradient(60deg, #FF998777 25%, transparent 25.5%, transparent 75%, #FF998777 75%, #FF998777);
+    background-color: var(--primary-color);
+    background-image: 
+        linear-gradient(30deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(150deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(30deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(150deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(60deg, rgba(255, 153, 135, 0.47) 25%, transparent 25.5%, transparent 75%, rgba(255, 153, 135, 0.47) 75%, rgba(255, 153, 135, 0.47)),
+        linear-gradient(60deg, rgba(255, 153, 135, 0.47) 25%, transparent 25.5%, transparent 75%, rgba(255, 153, 135, 0.47) 75%, rgba(255, 153, 135, 0.47));
     background-size: 80px 140px;
     background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
     backdrop-filter: blur(2px);
 }
 
 main {
-    font-family: "Lora", serif;
     display: flex;
     flex-direction: column;
     justify-content: start;
     align-items: center;
     min-width: 22vw;
     min-height: 100vh;
-    background-color: #F8EDED;
-    color: black;
-    box-shadow: rgba(253, 77, 189, 0.4) 5px 5px, rgba(240, 46, 170, 0.3) 10px 10px, rgba(240, 46, 170, 0.2) 15px 15px, rgba(240, 46, 170, 0.1) 20px 20px, rgba(240, 46, 170, 0.05) 25px 25px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    box-shadow: 
+        rgba(253, 77, 189, 0.4) 5px 5px, 
+        rgba(240, 46, 170, 0.3) 10px 10px, 
+        rgba(240, 46, 170, 0.2) 15px 15px, 
+        rgba(240, 46, 170, 0.1) 20px 20px, 
+        rgba(240, 46, 170, 0.05) 25px 25px;
 }
 
 .container {
@@ -44,80 +61,58 @@ main {
     min-width: 350px;
 }
 
+.container h1 {
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
+
 form {
     display: flex;
     flex-direction: column;
     width: 70%;
 }
 
-.container-username {
+.container-username, .container-password {
     display: flex;
     flex-direction: column;
     margin-bottom: 2rem;
 }
 
-.container-username label {
-    padding-bottom: 10px;
-}
-
-.container-username input {
-    border-radius: 5px;
-    background: rgb(249, 250, 250);
-    border: 1px solid rgb(181, 189, 196);
-    font-size: 16px;
-    line-height: 24px;
-    padding: 5px 8px;
-    height: 35px;
-    color: rgb(8, 9, 10);
-    box-shadow: none;
-}
-
-.container-username input:focus{
-    background-color: #fff;
-    border-color: #3b49df;
-    box-shadow: 1px 1px 0 #3b49df;
-}
-
-.container-username input:hover {
-    transition: all .1s ease;
-    box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FF9987;
-}
-
-.container-password {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 2rem;
-}
-
+.container-username label, 
 .container-password label {
     padding-bottom: 10px;
+    color: var(--text-color);
 }
 
+.container-username input, 
 .container-password input {
     border-radius: 5px;
     background: rgb(249, 250, 250);
     border: 1px solid rgb(181, 189, 196);
     font-size: 16px;
-    height: 1rem;
     line-height: 24px;
     padding: 5px 8px;
     height: 35px;
     color: rgb(8, 9, 10);
     box-shadow: none;
+    transition: all 0.3s ease;
 }
 
-.container-password input:focus{
+.container-username input:focus, 
+.container-password input:focus {
     background-color: #fff;
-    border-color: #3b49df;
-    box-shadow: 1px 1px 0 #3b49df;
+    border-color: var(--primary-color);
+    box-shadow: 1px 1px 0 var(--primary-color);
+    outline: none;
 }
 
+.container-username input:hover, 
 .container-password input:hover {
-    transition: all .1s ease;
-    box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FF9987;
+    box-shadow: 0 0 0 0 #fff, 0 0 0 3px var(--secondary-color);
 }
 
-.container-button{
+.container-button {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -125,6 +120,7 @@ form {
     gap: 1rem;
     margin-top: 1rem;
 }
+
 .container-button button {
     display: inline-block;
     outline: none;
@@ -133,14 +129,22 @@ form {
     border-radius: 3px;
     padding: 8px 18px;
     border: 0;
-    color: #3a4149;
-    background: #e7ebee;
-    line-height: 1.15;
     font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.container-button button:first-child {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+.container-button button:last-child {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
 }
 
 .container-button button:hover {
-    transition: all .1s ease;
-    box-shadow: 0 0 0 0 #fff, 0 0 0 3px #FFB59F;
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-

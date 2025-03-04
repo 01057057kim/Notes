@@ -31,7 +31,18 @@
             </div>
         </div>
     </div>
-    <button class="toggle-sidebar" id="toggleSidebar">☰</button>
+    <button class="toggle-sidebar" id="toggleSidebar">↔︎</button>
+    <!--
+    <button class="addImage">add Image</button>
+    ? Voice to Text Notes
+    ? AI summarization
+    ? Todo List checkbox
+    ? Reminder (setTimeout) or due Alaram
+    ? Vault note that encrypted
+    ? Custom Themes for notes nor category
+    ? Search all note for spesific word alt+f
+    -->
+    <button class="addNotesButton" id="globalAddNotesButton">+</button>
     <div class="notePosts" id="notePosts"> 
     </div>
 </body>
@@ -130,8 +141,6 @@
 
                 const data = await response.json();
 
-                alert(data.message);
-                
                 if(data.success){
                     localStorage.clear();
                     window.location.replace('/index.html');
@@ -179,42 +188,35 @@
             if(data.success){
                 console.log('Category created');
                 
-                // Modify getCategory to return the categories data
                 const categoriesData = await getCategory();
                 
                 if (categoriesData && categoriesData.categories && categoriesData.categories.length > 0) {
-                    // Find the newly created category (it should be the one with our unique name)
                     const newCategory = categoriesData.categories.find(cat => 
                         cat.categoryName === uniqueCategoryName);
                     
                     if (newCategory) {
-                        // Set this as the selected category
                         selectedCategoryId = newCategory._id;
                         
-                        // Hide all note containers
                         const allNoteContainers = document.querySelectorAll('.notes-container');
                         allNoteContainers.forEach(container => {
                             container.style.display = 'none';
                         });
                         
-                        // Show only the selected category's notes
+
                         const selectedNotesContainer = document.getElementById(`notes-${selectedCategoryId}`);
                         if (selectedNotesContainer) {
                             selectedNotesContainer.style.display = 'block';
                         }
                         
-                        // Update visual selection
                         const allCategories = document.querySelectorAll('.category-item');
                         allCategories.forEach(item => {
                             item.classList.remove('selected');
                         });
                         
-                        // Find and select the new category element
                         const newCategoryItem = document.querySelector(`.updateLiveCategoryName[data-category-id="${selectedCategoryId}"]`).closest('.category-item');
                         if (newCategoryItem) {
                             newCategoryItem.classList.add('selected');
                             
-                            // Focus and select the text
                             const textarea = newCategoryItem.querySelector('.updateLiveCategoryName');
                             if (textarea) {
                                 textarea.focus();
@@ -222,7 +224,6 @@
                             }
                         }
                         
-                        // Update add notes button
                         updateAddNotesButton();
                     }
                 }
@@ -248,7 +249,6 @@
                 return null;
             }
 
-            // Only set selectedCategoryId if it's not already set
             if (!selectedCategoryId && data.categories.length > 0) {
                 selectedCategoryId = data.categories[0]._id;
             }
@@ -260,9 +260,6 @@
                     <textarea class="updateLiveCategoryName" data-category-id="${category._id}">${category.categoryName}</textarea>
                     <button class="deleteCategory" onClick="deleteCategory('${category._id}')">Delete</button> </br>
                     <button class="select">Select</button>
-                    <div class="addNote">
-                        <button class="addNotesButton" data-category-id="${category._id}">Add Notes</button>
-                    </div>
                 `;
                 postSection.appendChild(categoryElement);
                 const textarea = categoryElement.querySelector('.updateLiveCategoryName');
@@ -281,7 +278,6 @@
                 getNotes(category._id);
             });
 
-            // Mark selected category
             const selectedCategory = document.querySelector(`.updateLiveCategoryName[data-category-id="${selectedCategoryId}"]`);
             if (selectedCategory) {
                 selectedCategory.closest('.category-item').classList.add('selected');
@@ -289,7 +285,7 @@
             
             updateAddNotesButton();
             
-            return data; // Return the data for further processing
+            return data;
 
         } catch(err) {
             console.log(err);
@@ -307,8 +303,8 @@
             })
             const data = await response.json()
             if(data.success){
-                alert('Succes Delete Category')
-                location.reload()
+                getCategory(); 
+                updateAddNotesButton();
             }else{
                 alert('Failed to delete')
                 console.log(err)
@@ -318,8 +314,7 @@
         }
     }
 
-    document.addEventListener('click', async function (event) {
-    if (event.target.classList.contains('addNotesButton')) { 
+    document.getElementById('globalAddNotesButton').addEventListener('click', async function () {
         const categoryId = selectedCategoryId || event.target.dataset.categoryId;
         const times = new Date().toLocaleString();
         const title = `Add your Title here...`
@@ -342,7 +337,6 @@
 
             const data = await response.json();
             if (data.success) {
-                alert('Note added successfully!');
                 getNotes(categoryId)
                
             } else {
@@ -351,8 +345,7 @@
         } catch (err) {
             console.error('Error:', err);
         }
-    }
-});
+    });
 
     async function getNotes(categoryId) {
         try {
@@ -424,7 +417,6 @@
             })
             const data = await response.json()
             if(data.success){
-                alert('Succes Delete notes')
                 getCategory();
             }else{
                 alert('Failed to delete')
@@ -519,15 +511,21 @@
     }
 
     function updateAddNotesButton() {
-        const addNotesButtons = document.querySelectorAll('.addNotesButton');
-        addNotesButtons.forEach(button => {
-            button.dataset.categoryId = selectedCategoryId;
-        });
+        const globalAddNotesButton = document.getElementById('globalAddNotesButton');
+        const categoryItems = document.querySelectorAll('.category-item');
+
+        if (categoryItems.length > 0) {
+            globalAddNotesButton.style.display = 'block'; 
+            globalAddNotesButton.dataset.categoryId = selectedCategoryId;
+        } else {
+            globalAddNotesButton.style.display = 'none';  
+        }
     }
 
+
+
     document.addEventListener('click', function(event) {
-    const categoryItem = event.target.closest('.category-item');
-        
+        const categoryItem = event.target.closest('.category-item');
         if (categoryItem && 
             !event.target.classList.contains('updateLiveCategoryName') && 
             !event.target.classList.contains('deleteCategory') &&
@@ -560,7 +558,7 @@
     window.onload = function() {
         getUsername();
         getCategory();
-    
+        updateAddNotesButton();
     };
 </script>
 </html>

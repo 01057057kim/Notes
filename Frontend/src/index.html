@@ -3,47 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NoteNest</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="/img/2.png" type="image/png">
+    <link rel="stylesheet" href="css/index.css">
+    <title>NoteNest - Elevate Your Creativity</title>
 </head>
 <body>
-    <main>
+    <header>
+        <div class="logo"><a href="index.html">NoteNest</a></div>
         <nav>
-            <ul>
-                <h1 class="Logo">NoteNest</h1>
-                <li><button id="login">Sign In</button></li>
-                <li><button id="register">Sign Up</button></li>
-            </ul>
+            <button class="btn btn-login">Login</button>
         </nav>
-        <section>
-            <h1>Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto iure neque officiis distinctio inventore dolorem optio quisquam error eligendi ratione, sapiente, molestiae minus doloremque doloribus? Voluptate, iure mollitia? Ullam, perferendis!</h1>
-            <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nihil velit soluta minus temporibus ad, odit sint unde sequi dolor voluptatibus, doloremque facere sunt tempora qui, consequuntur esse! Possimus, alias eligendi?</p>
-            <aside>
-                <h2>Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis, quisquam a? Veritatis, non id voluptate officia libero cumque voluptatibus ipsam illum dignissimos officiis, quas possimus optio iure eligendi rem laboriosam.</h2>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem pariatur animi ipsam ut ratione eligendi error est sint ab neque excepturi minima ipsum perspiciatis dolores itaque temporibus corrupti, esse quos.</p>
-            </aside>
-            <h3>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis, ipsa sapiente itaque tempore alias consequatur asperiores facilis eligendi dolor optio error blanditiis quam veniam reprehenderit impedit! Repudiandae in officiis culpa.</h3>
-            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Exercitationem ipsum iure voluptas laboriosam adipisci provident quia dolores possimus necessitatibus. Ab expedita provident quas non odio earum animi nostrum, dolores culpa!</p>
-        </section>
+    </header>
+    <main>
+        <div class="content">
+            <h1>Transform Your Ideas into Action</h1>
+            <p>NoteNest is more than a note-taking app. It's your personal creativity engine, designed to capture, organize, and bring your thoughts to life.</p>
+            <div class="cta">
+                <button class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Start Free
+                </button>
+                <button class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Watch Demo
+                </button>
+            </div>
+        </div>
+        <div class="video">
+            <img src="" alt="NoteNest Demo">
+            <div class="overlay"></div>
+        </div>
     </main>
-    <footer>
-        <ul>
-            <li>Lorem ipsum dolor sit amet consectetur adipisicing elit.</li>
-            <li>Lorem ipsum dolor, sit amet consectetur adipisicing elit.</li>
-        </ul>
-    </footer>
-<script>
-    document.getElementById('login').addEventListener('click', () => {
-        window.location.href = '/login.html';
-    });
+    <script>
+        document.querySelector('.btn-login').addEventListener('click', () => {
+            window.location.href = '/login.html';
+        });
 
-    document.getElementById('register').addEventListener('click', () => {
-        window.location.href = '/register.html';
-    });
-</script>
+        document.querySelector('.btn-primary').addEventListener('click', () => {
+            window.location.href = '/register.html';
+        });
+    </script>
 </body>
 </html>
+
+<!-- Add Demo video -->
