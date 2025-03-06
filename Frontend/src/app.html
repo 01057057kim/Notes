@@ -33,7 +33,6 @@
     </div>
     <button class="toggle-sidebar" id="toggleSidebar">↔︎</button>
     <!--
-    <button class="addImage">add Image</button>
     ? Voice to Text Notes
     ? AI summarization
     ? Todo List checkbox
@@ -42,6 +41,7 @@
     ? Custom Themes for notes nor category
     ? Search all note for spesific word alt+f
     -->
+    <button class="addImageButton" id="globalAddImageButton">+</button>
     <button class="addNotesButton" id="globalAddNotesButton">+</button>
     <div class="notePosts" id="notePosts"> 
     </div>
@@ -522,8 +522,6 @@
         }
     }
 
-
-
     document.addEventListener('click', function(event) {
         const categoryItem = event.target.closest('.category-item');
         if (categoryItem && 
@@ -554,6 +552,148 @@
         }
     });
 
+    document.getElementById('globalAddImageButton').addEventListener('click', async function () {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+
+        fileInput.addEventListener('change', async function () {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                await uploadImage(file);
+            }
+        });
+
+        fileInput.click();
+    });
+
+    async function uploadImage(file) {
+        try {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const uniqueId = Date.now();
+                
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const imgWidth = 500;
+                const imgHeight = 281;
+                
+                const sidebar = document.querySelector('.container');
+                const sidebarWidth = sidebar.classList.contains('collapsed') ? 0 : sidebar.offsetWidth;
+                
+                const centerX = ((windowWidth - sidebarWidth) / 2) - (imgWidth / 2) + sidebarWidth;
+                const centerY = (windowHeight / 2) - (imgHeight / 2);
+                
+                const imgContainer = document.createElement('div');
+                imgContainer.classList.add('resize-drag');
+                imgContainer.classList.add('image-container');
+                imgContainer.id = `image-container-${uniqueId}`;
+                
+                imgContainer.setAttribute('data-x', centerX);
+                imgContainer.setAttribute('data-y', centerY);
+                imgContainer.style.position = 'absolute';
+                imgContainer.style.width = `${imgWidth}px`;
+                imgContainer.style.height = `${imgHeight}px`;
+                imgContainer.style.transform = `translate(${centerX}px, ${centerY}px)`;
+                
+                const hiddenTextarea = document.createElement('textarea');
+                hiddenTextarea.style.display = 'none';
+                hiddenTextarea.dataset.noteId = `image-${uniqueId}`;
+                imgContainer.appendChild(hiddenTextarea);
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Uploaded Image';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.pointerEvents = 'none';
+
+                imgContainer.appendChild(img);
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.innerText = 'Delete';
+                deleteButton.classList.add('delete-image-button');
+                deleteButton.style.position = 'absolute';
+                deleteButton.style.bottom = '5px';
+                deleteButton.style.right = '5px';
+                deleteButton.addEventListener('click', function() {
+                    imgContainer.remove();
+                });
+                imgContainer.appendChild(deleteButton);
+
+                if (selectedCategoryId) {
+                    const selectedNotesContainer = document.getElementById(`notes-${selectedCategoryId}`);
+                    if (selectedNotesContainer) {
+                        selectedNotesContainer.appendChild(imgContainer);
+                    } else {
+                        document.getElementById('notePosts').appendChild(imgContainer);
+                    }
+                } else {
+                    document.getElementById('notePosts').appendChild(imgContainer);
+                }
+
+                interact(`#${imgContainer.id}`)
+                    .resizable({
+                        edges: { top: true, left: true, bottom: true, right: true },
+                        listeners: {
+                            move: function (event) {
+                                let { x, y } = event.target.dataset;
+
+                                x = (parseFloat(x) || 0) + event.deltaRect.left;
+                                y = (parseFloat(y) || 0) + event.deltaRect.top;
+
+                                Object.assign(event.target.style, {
+                                    width: `${event.rect.width}px`,
+                                    height: `${event.rect.height}px`,
+                                    transform: `translate(${x}px, ${y}px)`
+                                });
+
+                                Object.assign(event.target.dataset, { x, y });
+                            }
+                        },
+                        modifiers: [
+                            // minimum size
+                            interact.modifiers.restrictSize({
+                                min: { width: 100, height: 100 }
+                            })
+                        ],
+                        inertia: true
+                    })
+                    .draggable({
+                        inertia: true,
+                        modifiers: [
+                            interact.modifiers.restrictRect({
+                                restriction: 'body',
+                                endOnly: true
+                            })
+                        ],
+                        autoScroll: true,
+                        listeners: {
+                            move(event) {
+                                const target = event.target;
+                                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                                target.style.transform = `translate(${x}px, ${y}px)`;
+                                
+                                target.setAttribute('data-x', x);
+                                target.setAttribute('data-y', y);
+                                
+                                target.style.zIndex = '1000';
+                            },
+                            end(event) {
+                                event.target.style.zIndex = '1';
+                            }
+                        }
+                    });
+            };
+
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
+    }
 
     window.onload = function() {
         getUsername();
