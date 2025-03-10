@@ -2,7 +2,7 @@
 <img src="Images/NoteNest-App.png" alt="NoteNest" width="1000"/>
 
 ## Demo-1
-![Demo-1](./Images/Demo-1.mp4)
+![til](./Images/Demo-1.mp4)
 
 ### Full-stack Notes app
 
