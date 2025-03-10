@@ -7,8 +7,7 @@
     --gradient-primary: linear-gradient(135deg, #5D3FD3 0%, #6A5ACD 100%);
 }
 
-*
- {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -62,7 +61,7 @@ body {
     transition: left 0.3s ease;
 }
 
-.container.collapsed + .toggle-sidebar + .zoom-controls{
+.container.collapsed+.toggle-sidebar {
     left: 14px;
 }
 
@@ -191,13 +190,13 @@ body {
     display: none;
 }
 
-.addNote{
+.addNote {
     position: relative;
 }
 
 .addNotesButton {
     position: fixed;
-    bottom: 5.5rem;
+    bottom: 1.5rem;
     right: 1.5rem;
     padding: 10px 35px;
     border-radius: 100%;
@@ -220,7 +219,7 @@ body {
 
 .addImageButton {
     position: fixed;
-    bottom: 18.5rem;
+    bottom: 8.5rem;
     right: 1.5rem;
     padding: 2px 25px;
     border-radius: 100%;
@@ -241,34 +240,17 @@ body {
     box-shadow: 0 15px 40px rgba(93, 63, 211, 0.4);
 }
 
-.canvas-container {
-    position: absolute;
-    top: 0;
-    left: 0;
+.notePosts {
     width: 10000px;
     height: 10000px;
-    transform-origin: 0 0;
-    transition: transform 0.1s ease-out;
-    background-image: radial-gradient(#000000 1.6500000000000001px, transparent 1.6500000000000001px);
-    background-size: 33px 33px;
-    background-position: 0 0;
-    border: 1px dashed rgba(255,0,0,0.3);
-}
-
-.notePosts {
     position: relative;
-    width: 100%;
-    height: 100vh;
+    background-image:
+        linear-gradient(rgba(94, 64, 218, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(94, 64, 218, 0.07) 1px, transparent 1px);
+    background-size: 45px 45px;
+    background-position: center center;
+    border: none;
     overflow: hidden;
-    cursor: default;
-}
-
-.notePosts.panning {
-    cursor: grabbing;
-}
-
-.notePosts:active {
-    cursor: grabbing;
 }
 
 .notes-container {
@@ -277,126 +259,8 @@ body {
     height: 100%;
 }
 
-.grid-marker {
-    position: absolute;
-    color: rgba(0, 0, 0, 0.3);
-    font-size: 10px;
-    user-select: none;
-    pointer-events: none;
-}
-
-.zoom-controls {
-    position: fixed;
-    bottom: 2rem;
-    left: 330px;
-    z-index: 1300;
-    display: flex;
-    gap: 10px;
-    transition: left 0.3s ease;
-}
-
-.zoom-controls button {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: white;
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-.zoom-controls button:hover {
-    background: var(--primary-color);
-    color: white;
-}
-
-.zoom-level {
-    background: white;
-    border-radius: 15px;
-    padding: 5px 10px;
-    font-size: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-}
-
-/* Style for the minimap */
-.minimap {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 150px;
-    height: 100px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid var(--primary-color);
-    border-radius: 5px;
-    overflow: hidden;
-    z-index: 1000;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.minimap-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-origin: 0 0;
-}
-
-.minimap-viewport {
-    position: absolute;
-    border: 2px solid var(--accent-color);
-    background-color: rgba(255, 107, 107, 0.1);
-    pointer-events: none;
-}
-
-.reset-canvas-button {
-    position: fixed;
-    bottom: 12rem;
-    right: 1.5rem;
-    padding: 10px;
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    box-shadow: 0 10px 30px rgba(93, 63, 211, 0.3);
-    cursor: pointer;
-    z-index: 1200;
-    font-size: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.reset-canvas-button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(93, 63, 211, 0.4);
-}
-
-.note-section, .image-container {
-    position: absolute;
-    z-index: 2;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
 .note-section {
-    position: absolute;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
-    padding: 15px;
-    width: 250px;
-    min-height: 250px;
-    touch-action: none;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    transition: box-shadow 0.3s ease;
-    cursor: move;
+  
 }
 
 .note-section:hover {
@@ -504,8 +368,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .delete-image-button:hover {
@@ -531,4 +400,24 @@ body {
     touch-action: none;
     transform: translate(0px, 0px);
 }
+
+.canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: auto;
+    background-color: var(--background-color);
+}
+
+.panning-cursor {
+    cursor: grabbing !important;
+}
+
+.canvas-container:hover {
+    cursor: default;
+}
+
+
 
