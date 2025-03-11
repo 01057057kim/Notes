@@ -8,12 +8,36 @@ let zoomLevel = 1;
 let minZoom = 0.5;
 let maxZoom = 1;
 let zoomStep = 0.1;
+let minimap, zoomControls, searchContainer;
+let minimapUpdateTimeout = null;
+let minimapVisible = true;
+let sidebarVisible = true;
+let searchVisible = true;
+const toggleButton = document.getElementById('toggleSidebar');
+const sidebar = document.querySelector('.container');
+
+
+toggleButton.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    sidebarVisible = !sidebar.classList.contains('collapsed');
+    
+    minimap.style.transition = 'transform 0.3s ease';
+    zoomControls.style.transition = 'transform 0.3s ease';
+    
+    updateControlPositions();
+});
+
+function updateControlPositions() {
+    if (minimapVisible) {
+        minimap.style.transform = sidebarVisible ? 'translateX(0)' : 'translateX(-300px)';
+        zoomControls.style.transform = sidebarVisible ? 'translateX(0)' : 'translateX(-300px)';
+    } else {
+        minimap.style.display = 'none';
+        zoomControls.style.transform = sidebarVisible ? 'translateX(-230px)' : 'translateX(-530px)';
+    }
+}
 
 function initializeCanvas() {
-    notePostsContainer.style.width = "10000px";
-    notePostsContainer.style.height = "10000px";
-    notePostsContainer.style.position = "relative";
-
     viewportWidth = window.innerWidth;
     viewportHeight = window.innerHeight;
 
@@ -90,6 +114,7 @@ function handleMouseWheelZoom(event) {
     canvasContainer.scrollTop = newScrollTop;
 
     updateZoomUI(zoomLevel);
+    updateMinimap();
 }
 
 function updateZoomUI(level) {
@@ -158,11 +183,12 @@ function initZoom() {
         
         .zoom-controls {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 10px;
+            left: 540px;
             z-index: 1000;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 3px;
         }
         
         .zoom-controls button {
@@ -175,10 +201,11 @@ function initZoom() {
     `;
     document.head.appendChild(style);
 
-    const zoomControls = document.createElement('div');
+    zoomControls = document.createElement('div');
     zoomControls.className = 'zoom-controls';
     zoomControls.innerHTML = `
         <button id="zoom-in">+</button>
+        <button id="reset">⟳</button>
         <button id="zoom-out">-</button>
     `;
     document.body.appendChild(zoomControls);
@@ -196,6 +223,15 @@ function initZoom() {
         };
 
         handleMouseWheelZoom(fakeEvent);
+        updateMinimap();
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+        zoomLevel = 1;
+        notePostsContainer.style.transform = `scale(${zoomLevel})`;
+        updateZoomUI(zoomLevel);
+        resetCamera();
+        updateMinimap();
     });
 
     document.getElementById('zoom-out').addEventListener('click', () => {
@@ -210,6 +246,7 @@ function initZoom() {
         };
 
         handleMouseWheelZoom(fakeEvent);
+        updateMinimap();
     });
 
 }
@@ -222,6 +259,7 @@ function addResetButton() {
         notePostsContainer.style.transform = `scale(${zoomLevel})`;
         updateZoomUI(zoomLevel);
         resetCamera();
+        updateMinimap();
     });
 
     document.body.appendChild(resetButton);
@@ -354,7 +392,7 @@ function setupCanvasEventListeners() {
 
 function handleShortcut(e) {
     if (e.code === "KeyR" && e.ctrlKey) {
-        resetCamera();
+        addResetButton();
     }
 }
 
@@ -365,55 +403,60 @@ function adjustNotesAndImagesPositioning() {
             const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
             const data = await response.json()
             const notesContainer = document.getElementById(`notes-${categoryId}`)
-
+    
             if (notesContainer) {
                 const imageContainers = notesContainer.querySelectorAll('.image-container');
                 const imageElements = Array.from(imageContainers).map(container => container.cloneNode(true));
-
+    
                 const noteSections = notesContainer.querySelectorAll('.note-section');
                 noteSections.forEach(section => section.remove());
             }
-
+    
             if (!data.success) {
                 console.log('Error', data.message)
                 return
             }
-
+    
             data.notes.forEach(function (notes) {
                 const notesElement = document.createElement('section')
                 const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
                 let x, y;
+                
                 if (isNewNote) {
-                    x = (canvasContainer.scrollLeft + viewportWidth / 2) - 125;
-                    y = (canvasContainer.scrollTop + viewportHeight / 2) - 125;
+                    x = notePostsContainer.offsetWidth / 2 - 125; 
+                    y = notePostsContainer.offsetHeight / 2 - 125
+                    setTimeout(() => {
+                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                    }, 100);
                 } else {
                     x = notes.position?.canvasX || notes.position?.x || 0;
                     y = notes.position?.canvasY || notes.position?.y || 0;
                 }
-
+    
                 const positionStyle = `style="width: ${notes.position?.width || 250}px; height: ${notes.position?.height || 250}px; transform: translate(${x}px, ${y}px);"`;
                 const positionData = `data-x="${x}" data-y="${y}"`;
-
+    
                 notesElement.innerHTML = `
-                <section class="note-section resize-drag" ${positionStyle} ${positionData}>
-                    <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                    <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
-                    <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                </section>
-            `
-
+                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
+                        <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                        <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
+                        <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
+                    </section>
+                `
+    
                 if (notesContainer) {
                     notesContainer.appendChild(notesElement)
-
+    
                     const titleTextarea = notesElement.querySelector('.updateLiveTitle');
                     const contentTextarea = notesElement.querySelector('.updateLiveContent');
-
+    
                     titleTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
                         updateNotesTitle(noteId, newValue);
                     });
-
+    
                     contentTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
@@ -421,7 +464,7 @@ function adjustNotesAndImagesPositioning() {
                     });
                 }
             });
-
+    
         } catch (err) {
             console.log("Error: ", err)
         }
@@ -433,51 +476,57 @@ function adjustNotesAndImagesPositioning() {
             const response = await fetch(`/image/getById?imageId=${imageId}`, {
                 credentials: 'include'
             });
-
+    
             const data = await response.json();
-
+    
             if (!data.success || !data.image) {
                 console.log('Error loading image:', data.message);
                 return;
             }
-
+    
             const image = data.image;
             const notesContainer = document.getElementById(`notes-${categoryId}`);
             if (!notesContainer) return;
-
+    
             const imgContainer = document.createElement('div');
             imgContainer.classList.add('resize-drag');
             imgContainer.classList.add('image-container');
             imgContainer.id = `image-container-${image._id}`;
             imgContainer.setAttribute('data-category-id', categoryId);
-
+    
             const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
             let x, y;
+            const defaultWidth = 500;
+            const defaultHeight = 281;
+            
             if (isNewImage) {
-                const defaultWidth = 500;
-                const defaultHeight = 281
-                x = (canvasContainer.scrollLeft + viewportWidth / 2) - (defaultWidth / 2);
-                y = (canvasContainer.scrollTop + viewportHeight / 2) - (defaultHeight / 2);
+                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2; 
+                y = notePostsContainer.offsetHeight / 2 - defaultHeight / 2;
+                
+                setTimeout(() => {
+                    canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
+                    canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
+                }, 100);
             } else {
                 x = image.position?.canvasX || image.position?.x || 0;
                 y = image.position?.canvasY || image.position?.y || 0;
             }
-
-            const width = image.position?.width || 500;
-            const height = image.position?.height || 281;
-
+    
+            const width = image.position?.width || defaultWidth;
+            const height = image.position?.height || defaultHeight;
+    
             imgContainer.setAttribute('data-x', x);
             imgContainer.setAttribute('data-y', y);
             imgContainer.style.position = 'absolute';
             imgContainer.style.width = `${width}px`;
             imgContainer.style.height = `${height}px`;
             imgContainer.style.transform = `translate(${x}px, ${y}px)`;
-
+    
             const hiddenTextarea = document.createElement('textarea');
             hiddenTextarea.style.display = 'none';
             hiddenTextarea.dataset.imageId = image._id;
             imgContainer.appendChild(hiddenTextarea);
-
+    
             const img = document.createElement('img');
             img.src = `data:${image.image.contentType};base64,${image.image.data}`;
             img.alt = image.name;
@@ -485,9 +534,9 @@ function adjustNotesAndImagesPositioning() {
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             img.style.pointerEvents = 'none';
-
+    
             imgContainer.appendChild(img);
-
+    
             const deleteButton = document.createElement('button');
             deleteButton.innerText = 'Delete';
             deleteButton.classList.add('delete-image-button');
@@ -498,12 +547,13 @@ function adjustNotesAndImagesPositioning() {
                 deleteImage(image._id);
                 imgContainer.remove();
             });
-
+    
             imgContainer.appendChild(deleteButton);
             notesContainer.appendChild(imgContainer);
-
+    
             setupImageInteractions(imgContainer, image._id);
-
+            updateMinimap();
+    
         } catch (error) {
             console.error('Error loading image by ID:', error);
         }
@@ -562,25 +612,26 @@ window.deleteNotes = async function (noteId) {
         }
     }
 };
-/*
+
 function addMinimap() {
     if (document.getElementById('canvas-minimap')) {
         console.log('Minimap already exists');
         return document.getElementById('canvas-minimap');
     }
-    const minimap = document.createElement('div');
+    minimap = document.createElement('div');
     minimap.id = 'canvas-minimap';
     minimap.style.position = 'fixed';
-    minimap.style.top = '20px';
-    minimap.style.right = '20px';
-    minimap.style.width = '200px';
-    minimap.style.height = '150px';
+    minimap.style.bottom = '10px';
+    minimap.style.left = '310px';
+    minimap.style.width = '220px';
+    minimap.style.height = '170px';
     minimap.style.backgroundColor = '#f0f0f0';
     minimap.style.border = '1px solid #ccc';
     minimap.style.borderRadius = '5px';
     minimap.style.overflow = 'hidden';
     minimap.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-    minimap.style.zIndex = '1000';
+    minimap.style.zIndex = '1010';
+    minimap.style.cursor = 'default';
     document.body.appendChild(minimap);
 
     const minimapContent = document.createElement('div');
@@ -588,6 +639,7 @@ function addMinimap() {
     minimapContent.style.position = 'relative';
     minimapContent.style.width = '100%';
     minimapContent.style.height = '100%';
+    minimapContent.style.cursor = 'default';
     minimap.appendChild(minimapContent);
 
     const viewportIndicator = document.createElement('div');
@@ -599,91 +651,35 @@ function addMinimap() {
     minimapContent.appendChild(viewportIndicator);
 
     const toggleButton = document.createElement('button');
-    toggleButton.textContent = '−';
-    toggleButton.style.position = 'absolute';
-    toggleButton.style.top = '5px';
-    toggleButton.style.right = '5px';
-    toggleButton.style.width = '20px';
-    toggleButton.style.height = '20px';
-    toggleButton.style.padding = '0';
-    toggleButton.style.border = 'none';
-    toggleButton.style.borderRadius = '50%';
-    toggleButton.style.backgroundColor = 'rgba(255,255,255,0.7)';
-    toggleButton.style.cursor = 'pointer';
-    toggleButton.style.zIndex = '1001';
+    toggleButton.display = 'none';
+    
     minimap.appendChild(toggleButton);
 
-    let minimized = false;
-    
-    function toggleMinimapVisibility() {
-        if (minimized) {
-            minimap.style.height = '150px';
-            minimapContent.style.display = 'block';
-            toggleButton.textContent = '−';
-        } else {
-            minimap.style.height = '30px';
-            minimapContent.style.display = 'none';
-            toggleButton.textContent = '+';
-        }
-        minimized = !minimized;
-    }
-    
-    toggleButton.addEventListener('click', toggleMinimapVisibility);
-
-    window.addEventListener('keydown', function(e) {
+    window.addEventListener('keydown', function (e) {
         if (e.key === 'Tab') {
             e.preventDefault();
-            toggleMinimapVisibility();
+            minimapVisible = !minimapVisible;
+            minimap.style.display = minimapVisible ? 'block' : 'none';
+            updateControlPositions();
         }
-    });
-
-    // Make minimap draggable
-    let isDragging = false;
-    let dragStartX, dragStartY;
-    let initialRight, initialTop;
-
-    minimap.addEventListener('mousedown', (e) => {
-        if (e.target === minimapContent || e.target === minimap) {
-            isDragging = true;
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            initialRight = parseInt(minimap.style.right || '20', 10);
-            initialTop = parseInt(minimap.style.top || '20', 10);
-            minimap.style.cursor = 'grabbing';
-        }
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        
-        const deltaX = e.clientX - dragStartX;
-        const deltaY = e.clientY - dragStartY;
-        
-        minimap.style.right = (initialRight - deltaX) + 'px';
-        minimap.style.top = (initialTop + deltaY) + 'px';
-    });
-
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        minimap.style.cursor = 'grab';
     });
 
     minimapContent.addEventListener('click', (e) => {
         if (e.target !== minimapContent) return;
-        
+
         const rect = minimapContent.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
-        
+
         const canvasWidth = notePostsContainer.offsetWidth;
         const canvasHeight = notePostsContainer.offsetHeight;
-        
+
         const ratioX = canvasWidth / minimapContent.offsetWidth;
         const ratioY = canvasHeight / minimapContent.offsetHeight;
-        
+
         const targetX = clickX * ratioX - (viewportWidth / 2);
         const targetY = clickY * ratioY - (viewportHeight / 2);
-        
+
         animateScrollTo(targetX, targetY);
     });
 
@@ -692,9 +688,9 @@ function addMinimap() {
         element: minimap,
         content: minimapContent,
         indicator: viewportIndicator,
-        toggle: toggleMinimapVisibility
     };
 }
+
 
 function updateMinimap() {
     const minimap = document.getElementById('minimap-content');
@@ -707,28 +703,29 @@ function updateMinimap() {
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
 
-    const canvasWidth = notePostsContainer.offsetWidth;
-    const canvasHeight = notePostsContainer.offsetHeight;
+    const canvasWidth = notePostsContainer.offsetWidth / zoomLevel;
+    const canvasHeight = notePostsContainer.offsetHeight / zoomLevel;
     const minimapWidth = minimap.offsetWidth;
     const minimapHeight = minimap.offsetHeight;
-    
+
     const scaleX = minimapWidth / canvasWidth;
     const scaleY = minimapHeight / canvasHeight;
 
-    const viewportX = canvasContainer.scrollLeft * scaleX;
-    const viewportY = canvasContainer.scrollTop * scaleY
-    const viewportW = viewportWidth * scaleX;
-    const viewportH = viewportHeight * scaleY;
+    const viewportX = (canvasContainer.scrollLeft / zoomLevel) * scaleX;
+    const viewportY = (canvasContainer.scrollTop / zoomLevel) * scaleY;
+    const viewportW = (viewportWidth / zoomLevel) * scaleX;
+    const viewportH = (viewportHeight / zoomLevel) * scaleY;
 
     indicator.style.left = viewportX + 'px';
     indicator.style.top = viewportY + 'px';
     indicator.style.width = viewportW + 'px';
     indicator.style.height = viewportH + 'px';
+
     notes.forEach(note => {
         const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
-        const w = note.offsetWidth * scaleX;
-        const h = note.offsetHeight * scaleY;
+        const w = (note.offsetWidth / zoomLevel) * scaleX;
+        const h = (note.offsetHeight / zoomLevel) * scaleY;
 
         const noteIndicator = document.createElement('div');
         noteIndicator.className = 'minimap-note-indicator';
@@ -740,15 +737,15 @@ function updateMinimap() {
         noteIndicator.style.backgroundColor = '#5d3fd3';
         noteIndicator.style.opacity = '0.6';
         noteIndicator.style.pointerEvents = 'none';
-        
+
         minimap.appendChild(noteIndicator);
     });
 
     images.forEach(img => {
         const x = (parseFloat(img.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(img.getAttribute('data-y')) || 0) * scaleY;
-        const w = img.offsetWidth * scaleX;
-        const h = img.offsetHeight * scaleY;
+        const w = (img.offsetWidth / zoomLevel) * scaleX;
+        const h = (img.offsetHeight / zoomLevel) * scaleY;
 
         const imgIndicator = document.createElement('div');
         imgIndicator.className = 'minimap-note-indicator';
@@ -760,9 +757,16 @@ function updateMinimap() {
         imgIndicator.style.backgroundColor = '#3f8dd3';
         imgIndicator.style.opacity = '0.6';
         imgIndicator.style.pointerEvents = 'none';
-        
+
         minimap.appendChild(imgIndicator);
     });
+}
+
+function debouncedUpdateMinimap() {
+    if (minimapUpdateTimeout) {
+        clearTimeout(minimapUpdateTimeout);
+    }
+    minimapUpdateTimeout = setTimeout(updateMinimap, 50);
 }
 
 function animateScrollTo(targetX, targetY) {
@@ -790,11 +794,11 @@ function animateScrollTo(targetX, targetY) {
 }
 
 function addSearchFeature() {
-    const searchContainer = document.createElement('div');
+    searchContainer = document.createElement('div');
     searchContainer.id = 'search-container';
     searchContainer.style.position = 'fixed';
     searchContainer.style.top = '20px';
-    searchContainer.style.left = '20px';
+    searchContainer.style.right = '20px';
     searchContainer.style.zIndex = '1000';
     searchContainer.style.display = 'flex';
     searchContainer.style.alignItems = 'center';
@@ -822,13 +826,22 @@ function addSearchFeature() {
     searchButton.style.cursor = 'pointer';
     searchContainer.appendChild(searchButton);
 
+    // all note containers **
+    const searchAllCheckbox = document.createElement('input');
+    searchAllCheckbox.type = 'checkbox';
+    searchAllCheckbox.id = 'search-all-categories';
+    searchAllCheckbox.checked = true;
+    searchAllCheckbox.style.position = 'fixed';
+    searchAllCheckbox.style.right = '115px';
+    searchContainer.appendChild(searchAllCheckbox);
+
     const resultsContainer = document.createElement('div');
     resultsContainer.id = 'search-results';
     resultsContainer.style.position = 'fixed';
     resultsContainer.style.top = '60px';
-    resultsContainer.style.left = '20px';
-    resultsContainer.style.width = '250px';
-    resultsContainer.style.maxHeight = '300px';
+    resultsContainer.style.right = '20px';
+    resultsContainer.style.width = '300px';
+    resultsContainer.style.maxHeight = '400px';
     resultsContainer.style.overflowY = 'auto';
     resultsContainer.style.backgroundColor = 'white';
     resultsContainer.style.borderRadius = '5px';
@@ -839,14 +852,14 @@ function addSearchFeature() {
     document.body.appendChild(resultsContainer);
 
     searchButton.addEventListener('click', performSearch);
-    
-    searchInput.addEventListener('keyup', function(e) {
+
+    searchInput.addEventListener('keyup', function (e) {
         if (e.key === 'Enter') {
             performSearch();
         }
     });
 
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         if (this.value === '') {
             clearHighlights();
             resultsContainer.style.display = 'none';
@@ -856,105 +869,201 @@ function addSearchFeature() {
     function performSearch() {
         const searchTerm = searchInput.value.trim().toLowerCase();
         if (!searchTerm) return;
-        
-        const notes = document.querySelectorAll('.note-section');
+
+        const searchAll = searchAllCheckbox.checked;
         const results = [];
-        
         clearHighlights();
-        
-        notes.forEach(note => {
-            const titleElement = note.querySelector('.updateLiveTitle');
-            const contentElement = note.querySelector('.updateLiveContent');
-            
-            if (!titleElement || !contentElement) return;
-            
-            const title = titleElement.value;
-            const content = contentElement.value;
-            const noteId = titleElement.getAttribute('data-note-id');
-            
-            const titleMatch = title.toLowerCase().includes(searchTerm);
-            const contentMatch = content.toLowerCase().includes(searchTerm);
-            
-            if (titleMatch || contentMatch) {
-                results.push({
-                    element: note,
-                    noteId,
-                    title,
-                    content,
-                    titleMatch,
-                    contentMatch
-                });
-                
-                note.style.boxShadow = '0 0 0 3px #5d3fd3';
+
+        const categoryMap = {};
+        document.querySelectorAll('.updateLiveCategoryName').forEach(cat => {
+            const categoryId = cat.getAttribute('data-category-id');
+            if (categoryId) {
+                categoryMap[categoryId] = cat.value;
             }
         });
-        
+
+        const notesContainers = document.querySelectorAll('.notes-container');
+        notesContainers.forEach(container => {
+            if (!searchAll && container.style.display === 'none') {
+                return;
+            }
+
+            const categoryId = container.id.replace('notes-', '');
+            const categoryName = categoryMap[categoryId] || 'Unknown Category';
+            
+            const notes = container.querySelectorAll('.note-section');
+            notes.forEach(note => {
+                const titleElement = note.querySelector('.updateLiveTitle');
+                const contentElement = note.querySelector('.updateLiveContent');
+
+                if (!titleElement || !contentElement) return;
+
+                const title = titleElement.value;
+                const content = contentElement.value;
+                const noteId = titleElement.getAttribute('data-note-id');
+
+                const titleMatch = title.toLowerCase().includes(searchTerm);
+                const contentMatch = content.toLowerCase().includes(searchTerm);
+
+                if (titleMatch || contentMatch) {
+                    results.push({
+                        element: note,
+                        noteId,
+                        categoryId,
+                        categoryName,
+                        title,
+                        content,
+                        titleMatch,
+                        contentMatch
+                    });
+                    if (container.style.display !== 'none') {
+                        note.style.boxShadow = '0 0 0 3px #5d3fd3';
+                    }
+                }
+            });
+        });
+
         displayResults(results, searchTerm);
     }
 
     function displayResults(results, searchTerm) {
         resultsContainer.innerHTML = '';
-        
+
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">No results found</p>';
             resultsContainer.style.display = 'block';
             return;
         }
-        
+
+        const resultsByCategory = {};
         results.forEach(result => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'search-result-item';
-            resultItem.style.padding = '8px';
-            resultItem.style.borderBottom = '1px solid #eee';
-            resultItem.style.cursor = 'pointer';
-            
-            let titleDisplay = result.title;
-            if (result.titleMatch) {
-                const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                titleDisplay = titleDisplay.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+            if (!resultsByCategory[result.categoryId]) {
+                resultsByCategory[result.categoryId] = {
+                    name: result.categoryName,
+                    results: []
+                };
             }
-            let contentPreview = result.content;
-            if (contentPreview.length > 100) {
-                contentPreview = contentPreview.substring(0, 100) + '...';
-            }
-            
-            if (result.contentMatch) {
-                const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
-            }
-            
-            resultItem.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">${titleDisplay}</div>
-                <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
-            `;
-            
-            resultItem.addEventListener('click', () => {
-                navigateToNote(result.element);
-            });
-            
-            resultItem.addEventListener('mouseover', () => {
-                resultItem.style.backgroundColor = '#f0f0f0';
-            });
-            
-            resultItem.addEventListener('mouseout', () => {
-                resultItem.style.backgroundColor = 'transparent';
-            });
-            
-            resultsContainer.appendChild(resultItem);
+            resultsByCategory[result.categoryId].results.push(result);
         });
-        
+
+        const totalCount = document.createElement('div');
+        totalCount.style.padding = '8px';
+        totalCount.style.marginBottom = '10px';
+        totalCount.style.fontWeight = 'bold';
+        totalCount.style.borderBottom = '2px solid #5d3fd3';
+        totalCount.textContent = `Found ${results.length} result${results.length !== 1 ? 's' : ''}`;
+        resultsContainer.appendChild(totalCount);
+
+        Object.keys(resultsByCategory).forEach(categoryId => {
+            const categoryResults = resultsByCategory[categoryId];
+            
+            const categoryHeader = document.createElement('div');
+            categoryHeader.style.padding = '5px 8px';
+            categoryHeader.style.backgroundColor = '#f0f0f0';
+            categoryHeader.style.margin = '5px 0';
+            categoryHeader.style.fontWeight = 'bold';
+            categoryHeader.style.borderLeft = '3px solid #5d3fd3';
+            categoryHeader.textContent = `${categoryResults.name} (${categoryResults.results.length})`;
+            
+            categoryHeader.style.cursor = 'pointer';
+            categoryHeader.addEventListener('click', () => {
+                switchToCategory(categoryId);
+            });
+            
+            resultsContainer.appendChild(categoryHeader);
+            categoryResults.results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.style.padding = '8px';
+                resultItem.style.marginLeft = '10px';
+                resultItem.style.borderBottom = '1px solid #eee';
+                resultItem.style.cursor = 'pointer';
+
+                let titleDisplay = result.title;
+                if (result.titleMatch) {
+                    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                    titleDisplay = titleDisplay.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+                }
+                
+                let contentPreview = result.content;
+                if (contentPreview.length > 80) {
+                    contentPreview = contentPreview.substring(0, 80) + '...';
+                }
+
+                if (result.contentMatch) {
+                    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                    contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+                }
+
+                resultItem.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">${titleDisplay}</div>
+                    <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
+                `;
+
+                resultItem.addEventListener('click', () => {
+                    switchToCategory(categoryId);
+                    setTimeout(() => {
+                        navigateToNote(result.element);
+                    }, 300);
+                });
+
+                resultItem.addEventListener('mouseover', () => {
+                    resultItem.style.backgroundColor = '#f0f0f0';
+                });
+
+                resultItem.addEventListener('mouseout', () => {
+                    resultItem.style.backgroundColor = 'transparent';
+                });
+
+                resultsContainer.appendChild(resultItem);
+            });
+        });
+
         resultsContainer.style.display = 'block';
+    }
+
+    function switchToCategory(categoryId) {
+        const categoryItem = document.querySelector(`.updateLiveCategoryName[data-category-id="${categoryId}"]`).closest('.category-item');
+        if (categoryItem) {
+            const selectButton = categoryItem.querySelector('.select');
+            if (selectButton) {
+                selectButton.click();
+            } else {
+
+                const allNoteContainers = document.querySelectorAll('.notes-container');
+                allNoteContainers.forEach(container => {
+                    container.style.display = 'none';
+                });
+
+                const selectedNotesContainer = document.getElementById(`notes-${categoryId}`);
+                if (selectedNotesContainer) {
+                    selectedNotesContainer.style.display = 'block';
+                }
+
+                const allCategories = document.querySelectorAll('.category-item');
+                allCategories.forEach(item => {
+                    item.classList.remove('selected');
+                });
+
+                categoryItem.classList.add('selected');
+                selectedCategoryId = categoryId;
+                
+                updateAddNotesButton();
+                updateAddImageButton();
+                updateMinimap();
+            }
+        }
     }
 
     function navigateToNote(noteElement) {
         const x = parseFloat(noteElement.getAttribute('data-x')) || 0;
         const y = parseFloat(noteElement.getAttribute('data-y')) || 0;
-        
+
         const targetX = x - (viewportWidth / 2) + (noteElement.offsetWidth / 2);
         const targetY = y - (viewportHeight / 2) + (noteElement.offsetHeight / 2);
-    
+
         animateScrollTo(targetX, targetY);
-        
+
         let flashCount = 0;
         const originalShadow = noteElement.style.boxShadow;
         const flashInterval = setInterval(() => {
@@ -963,7 +1072,7 @@ function addSearchFeature() {
             } else {
                 noteElement.style.boxShadow = originalShadow;
             }
-            
+
             flashCount++;
             if (flashCount >= 6) {
                 clearInterval(flashInterval);
@@ -981,14 +1090,26 @@ function addSearchFeature() {
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
-
+    /* NEED FIX
+    document.addEventListener('keydown', function(e) {
+        if (e.code === "KeyF") {
+            e.preventDefault();
+            e.stopPropagation();
+            searchVisible = !searchVisible;
+            searchContainer.style.display = searchVisible ? 'none' : 'flex';
+            console.log("Search toggled:", searchVisible); 
+        }
+    }, true)
+     */
     return {
         container: searchContainer,
         input: searchInput,
         results: resultsContainer,
+        searchAllToggle: searchAllCheckbox,
         search: performSearch
     };
 }
+
 function integrateNewFeatures() {
     let minimap = document.getElementById('canvas-minimap');
     if (!minimap) {
@@ -996,45 +1117,51 @@ function integrateNewFeatures() {
     }
 
     const search = addSearchFeature();
-    
+
     const originalHandleMouseMove = handleMouseMove;
-    window.handleMouseMove = function(e) {
+    window.handleMouseMove = function (e) {
         originalHandleMouseMove(e);
-        updateMinimap();
+        debouncedUpdateMinimap();
+    };
+
+    const originalHandleMouseWheelZoom = handleMouseWheelZoom;
+    window.handleMouseWheelZoom = function (event) {
+        originalHandleMouseWheelZoom(event);
+        debouncedUpdateMinimap(); 
     };
     
-    const originalHandleMouseWheelZoom = handleMouseWheelZoom;
-    window.handleMouseWheelZoom = function(event) {
-        originalHandleMouseWheelZoom(event);
-        updateMinimap();
-    };
     const originalGetNotes = window.getNotes;
-    window.getNotes = async function(categoryId) {
+    window.getNotes = async function (categoryId) {
         await originalGetNotes(categoryId);
         updateMinimap();
     };
-    
+
     const originalLoadImageById = window.loadImageById;
-    window.loadImageById = async function(imageId, categoryId) {
+    window.loadImageById = async function (imageId, categoryId) {
         await originalLoadImageById(imageId, categoryId);
         updateMinimap();
     };
-    
+
     const originalDeleteNotes = window.deleteNotes;
-    window.deleteNotes = async function(noteId) {
+    window.deleteNotes = async function (noteId) {
         await originalDeleteNotes(noteId);
         updateMinimap();
     };
-    
-    setInterval(updateMinimap, 2000);
 
-    setTimeout(updateMinimap, 500);
-    
-    console.log('Minimap and Search features integrated');
+    canvasContainer.addEventListener('scroll', debouncedUpdateMinimap);
+
+    const resizableElements = document.querySelectorAll('.resize-drag');
+    resizableElements.forEach(element => {
+        const observer = new MutationObserver(debouncedUpdateMinimap);
+        observer.observe(element, { attributes: true, attributeFilter: ['style', 'data-x', 'data-y'] });
+    });
+    setInterval(updateMinimap, 0); 
+    setTimeout(updateMinimap, 500); 
 }
 
+
 const originalInitInfinityCanvas = initInfinityCanvas;
-window.initInfinityCanvas = function() {
+window.initInfinityCanvas = function () {
     originalInitInfinityCanvas();
     integrateNewFeatures();
 };
@@ -1042,21 +1169,8 @@ window.initInfinityCanvas = function() {
 if (document.querySelector('.canvas-container')) {
     integrateNewFeatures();
 }
- */
-function initInfinityCanvas() {
-    initializeCanvas();
-    setupCanvasEventListeners();
-    updateNotePositioning();
-    adjustNotesAndImagesPositioning();
-    addResetButton();
-    initZoom();
 
-    console.log('Infinity canvas initialized');
-
-    if (!document.getElementById('canvas-minimap')) {
-        integrateNewFeatures();
-    }
-
+function updateNotification() {
     const notification = document.createElement('div');
     notification.textContent = 'Right-click and drag to pan | Ctrl+R to reset camera | Tab to toggle minimap';
     notification.style.position = 'fixed';
@@ -1079,9 +1193,30 @@ function initInfinityCanvas() {
     }, 7000);
 }
 
+function initInfinityCanvas() {
+    initializeCanvas();
+    setupCanvasEventListeners();
+    updateNotePositioning();
+    adjustNotesAndImagesPositioning();
+    addResetButton();
+    initZoom();
+
+    console.log('Infinity canvas initialized');
+
+    if (!document.getElementById('canvas-minimap')) {
+        integrateNewFeatures();
+    }
+
+    updateNotification();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     initInfinityCanvas();
 });
 
 
-// fix reset camera only works on the first category only
+// fix search feature when zoom in/out only work when viewpoint 100%
+// notePosts fix the background not full only full when viewpoint 100%
+// update viewpoint < 100% size
+// add key for seach and new note / image , toogle container
+/////////////////////////////////////////////////////////////////////////////////
