@@ -20,10 +20,10 @@ const sidebar = document.querySelector('.container');
 toggleButton.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
     sidebarVisible = !sidebar.classList.contains('collapsed');
-    
+
     minimap.style.transition = 'transform 0.3s ease';
     zoomControls.style.transition = 'transform 0.3s ease';
-    
+
     updateControlPositions();
 });
 
@@ -78,8 +78,20 @@ function handleMouseMove(e) {
     const walkX = (x - startX) * 0.8; // multiply speed factor
     const walkY = (y - startY) * 0.8;
 
-    canvasContainer.scrollLeft = scrollLeft - walkX;
-    canvasContainer.scrollTop = scrollTop - walkY;
+    let newScrollLeft = scrollLeft - walkX;
+    let newScrollTop = scrollTop - walkY;
+
+    const canvasWidth = notePostsContainer.offsetWidth * zoomLevel;
+    const canvasHeight = notePostsContainer.offsetHeight * zoomLevel;
+
+    const maxScrollLeft = Math.max(0, canvasWidth - viewportWidth);
+    const maxScrollTop = Math.max(0, canvasHeight - viewportHeight);
+
+    newScrollLeft = Math.max(0, Math.min(newScrollLeft, maxScrollLeft));
+    newScrollTop = Math.max(0, Math.min(newScrollTop, maxScrollTop));
+
+    canvasContainer.scrollLeft = newScrollLeft;
+    canvasContainer.scrollTop = newScrollTop;
 }
 
 function handleMouseWheelZoom(event) {
@@ -107,8 +119,17 @@ function handleMouseWheelZoom(event) {
     notePostsContainer.style.transform = `scale(${zoomLevel})`;
     notePostsContainer.style.transformOrigin = '0 0';
 
-    const newScrollLeft = pointX * scaleFactor - relativeX;
-    const newScrollTop = pointY * scaleFactor - relativeY;
+    let newScrollLeft = pointX * scaleFactor - relativeX;
+    let newScrollTop = pointY * scaleFactor - relativeY;
+
+    const canvasWidth = notePostsContainer.offsetWidth * zoomLevel;
+    const canvasHeight = notePostsContainer.offsetHeight * zoomLevel;
+
+    const maxScrollLeft = Math.max(0, canvasWidth - viewportWidth);
+    const maxScrollTop = Math.max(0, canvasHeight - viewportHeight);
+
+    newScrollLeft = Math.max(0, Math.min(newScrollLeft, maxScrollLeft));
+    newScrollTop = Math.max(0, Math.min(newScrollTop, maxScrollTop));
 
     canvasContainer.scrollLeft = newScrollLeft;
     canvasContainer.scrollTop = newScrollTop;
@@ -123,17 +144,6 @@ function updateZoomUI(level) {
     if (!zoomIndicator) {
         zoomIndicator = document.createElement('div');
         zoomIndicator.id = 'zoom-indicator';
-        zoomIndicator.style.position = 'fixed';
-        zoomIndicator.style.bottom = '10px';
-        zoomIndicator.style.left = '10px';
-        zoomIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-        zoomIndicator.style.color = 'white';
-        zoomIndicator.style.padding = '5px 10px';
-        zoomIndicator.style.borderRadius = '3px';
-        zoomIndicator.style.fontSize = '12px';
-        zoomIndicator.style.zIndex = '1000';
-        zoomIndicator.style.opacity = '0';
-        zoomIndicator.style.transition = 'opacity 0.5s ease';
         document.body.appendChild(zoomIndicator);
     }
 
@@ -163,40 +173,6 @@ function initZoom() {
         .notes-container {
             position: relative;
             min-height: 100vh;
-        }
-        
-        .note-section {
-            position: absolute;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
-            padding: 15px;
-            width: 250px;
-            min-height: 250px;
-            touch-action: none;
-            user-select: none;
-            display: flex;
-            flex-direction: column;
-            transition: box-shadow 0.3s ease;
-            cursor: move;
-        }
-        
-        .zoom-controls {
-            position: fixed;
-            bottom: 10px;
-            left: 540px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        
-        .zoom-controls button {
-            padding: 5px 10px;
-            background: rgba(255,255,255,0.8);
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            cursor: pointer;
         }
     `;
     document.head.appendChild(style);
@@ -271,10 +247,22 @@ function handleMouseUp(e) {
 }
 
 function resetCamera() {
+    centerX = (notePostsContainer.offsetWidth / 2) - (viewportWidth / 2);
+    centerY = (notePostsContainer.offsetHeight / 2) - (viewportHeight / 2);
+
+    const canvasWidth = notePostsContainer.offsetWidth * zoomLevel;
+    const canvasHeight = notePostsContainer.offsetHeight * zoomLevel;
+
+    const maxScrollLeft = Math.max(0, canvasWidth - viewportWidth);
+    const maxScrollTop = Math.max(0, canvasHeight - viewportHeight);
+
+    const boundedCenterX = Math.max(0, Math.min(centerX * zoomLevel, maxScrollLeft));
+    const boundedCenterY = Math.max(0, Math.min(centerY * zoomLevel, maxScrollTop));
+
     const currentScrollLeft = canvasContainer.scrollLeft;
     const currentScrollTop = canvasContainer.scrollTop;
-    const scrollDistanceX = centerX - currentScrollLeft;
-    const scrollDistanceY = centerY - currentScrollTop;
+    const scrollDistanceX = boundedCenterX - currentScrollLeft;
+    const scrollDistanceY = boundedCenterY - currentScrollTop;
     const duration = 500;
     const startTime = performance.now();
 
@@ -391,9 +379,12 @@ function setupCanvasEventListeners() {
 }
 
 function handleShortcut(e) {
+
     if (e.code === "KeyR" && e.ctrlKey) {
-        addResetButton();
+        e.preventDefault();
+        resetCamera();
     }
+
 }
 
 function adjustNotesAndImagesPositioning() {
@@ -403,27 +394,27 @@ function adjustNotesAndImagesPositioning() {
             const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
             const data = await response.json()
             const notesContainer = document.getElementById(`notes-${categoryId}`)
-    
+
             if (notesContainer) {
                 const imageContainers = notesContainer.querySelectorAll('.image-container');
                 const imageElements = Array.from(imageContainers).map(container => container.cloneNode(true));
-    
+
                 const noteSections = notesContainer.querySelectorAll('.note-section');
                 noteSections.forEach(section => section.remove());
             }
-    
+
             if (!data.success) {
                 console.log('Error', data.message)
                 return
             }
-    
+
             data.notes.forEach(function (notes) {
                 const notesElement = document.createElement('section')
                 const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
                 let x, y;
-                
+
                 if (isNewNote) {
-                    x = notePostsContainer.offsetWidth / 2 - 125; 
+                    x = notePostsContainer.offsetWidth / 2 - 125;
                     y = notePostsContainer.offsetHeight / 2 - 125
                     setTimeout(() => {
                         canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
@@ -433,10 +424,10 @@ function adjustNotesAndImagesPositioning() {
                     x = notes.position?.canvasX || notes.position?.x || 0;
                     y = notes.position?.canvasY || notes.position?.y || 0;
                 }
-    
+
                 const positionStyle = `style="width: ${notes.position?.width || 250}px; height: ${notes.position?.height || 250}px; transform: translate(${x}px, ${y}px);"`;
                 const positionData = `data-x="${x}" data-y="${y}"`;
-    
+
                 notesElement.innerHTML = `
                     <section class="note-section resize-drag" ${positionStyle} ${positionData}>
                         <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
@@ -444,19 +435,19 @@ function adjustNotesAndImagesPositioning() {
                         <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
                     </section>
                 `
-    
+
                 if (notesContainer) {
                     notesContainer.appendChild(notesElement)
-    
+
                     const titleTextarea = notesElement.querySelector('.updateLiveTitle');
                     const contentTextarea = notesElement.querySelector('.updateLiveContent');
-    
+
                     titleTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
                         updateNotesTitle(noteId, newValue);
                     });
-    
+
                     contentTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
@@ -464,7 +455,7 @@ function adjustNotesAndImagesPositioning() {
                     });
                 }
             });
-    
+
         } catch (err) {
             console.log("Error: ", err)
         }
@@ -476,33 +467,33 @@ function adjustNotesAndImagesPositioning() {
             const response = await fetch(`/image/getById?imageId=${imageId}`, {
                 credentials: 'include'
             });
-    
+
             const data = await response.json();
-    
+
             if (!data.success || !data.image) {
                 console.log('Error loading image:', data.message);
                 return;
             }
-    
+
             const image = data.image;
             const notesContainer = document.getElementById(`notes-${categoryId}`);
             if (!notesContainer) return;
-    
+
             const imgContainer = document.createElement('div');
             imgContainer.classList.add('resize-drag');
             imgContainer.classList.add('image-container');
             imgContainer.id = `image-container-${image._id}`;
             imgContainer.setAttribute('data-category-id', categoryId);
-    
+
             const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
             let x, y;
             const defaultWidth = 500;
             const defaultHeight = 281;
-            
+
             if (isNewImage) {
-                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2; 
+                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2;
                 y = notePostsContainer.offsetHeight / 2 - defaultHeight / 2;
-                
+
                 setTimeout(() => {
                     canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
                     canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
@@ -511,22 +502,22 @@ function adjustNotesAndImagesPositioning() {
                 x = image.position?.canvasX || image.position?.x || 0;
                 y = image.position?.canvasY || image.position?.y || 0;
             }
-    
+
             const width = image.position?.width || defaultWidth;
             const height = image.position?.height || defaultHeight;
-    
+
             imgContainer.setAttribute('data-x', x);
             imgContainer.setAttribute('data-y', y);
             imgContainer.style.position = 'absolute';
             imgContainer.style.width = `${width}px`;
             imgContainer.style.height = `${height}px`;
             imgContainer.style.transform = `translate(${x}px, ${y}px)`;
-    
+
             const hiddenTextarea = document.createElement('textarea');
             hiddenTextarea.style.display = 'none';
             hiddenTextarea.dataset.imageId = image._id;
             imgContainer.appendChild(hiddenTextarea);
-    
+
             const img = document.createElement('img');
             img.src = `data:${image.image.contentType};base64,${image.image.data}`;
             img.alt = image.name;
@@ -534,9 +525,9 @@ function adjustNotesAndImagesPositioning() {
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             img.style.pointerEvents = 'none';
-    
+
             imgContainer.appendChild(img);
-    
+
             const deleteButton = document.createElement('button');
             deleteButton.innerText = 'Delete';
             deleteButton.classList.add('delete-image-button');
@@ -547,13 +538,13 @@ function adjustNotesAndImagesPositioning() {
                 deleteImage(image._id);
                 imgContainer.remove();
             });
-    
+
             imgContainer.appendChild(deleteButton);
             notesContainer.appendChild(imgContainer);
-    
+
             setupImageInteractions(imgContainer, image._id);
             updateMinimap();
-    
+
         } catch (error) {
             console.error('Error loading image by ID:', error);
         }
@@ -620,39 +611,18 @@ function addMinimap() {
     }
     minimap = document.createElement('div');
     minimap.id = 'canvas-minimap';
-    minimap.style.position = 'fixed';
-    minimap.style.bottom = '10px';
-    minimap.style.left = '310px';
-    minimap.style.width = '220px';
-    minimap.style.height = '170px';
-    minimap.style.backgroundColor = '#f0f0f0';
-    minimap.style.border = '1px solid #ccc';
-    minimap.style.borderRadius = '5px';
-    minimap.style.overflow = 'hidden';
-    minimap.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-    minimap.style.zIndex = '1010';
-    minimap.style.cursor = 'default';
     document.body.appendChild(minimap);
 
     const minimapContent = document.createElement('div');
     minimapContent.id = 'minimap-content';
-    minimapContent.style.position = 'relative';
-    minimapContent.style.width = '100%';
-    minimapContent.style.height = '100%';
-    minimapContent.style.cursor = 'default';
     minimap.appendChild(minimapContent);
 
     const viewportIndicator = document.createElement('div');
     viewportIndicator.id = 'viewport-indicator';
-    viewportIndicator.style.position = 'absolute';
-    viewportIndicator.style.border = '2px solid #5d3fd3';
-    viewportIndicator.style.backgroundColor = 'rgba(93, 63, 211, 0.1)';
-    viewportIndicator.style.pointerEvents = 'none';
     minimapContent.appendChild(viewportIndicator);
-
     const toggleButton = document.createElement('button');
     toggleButton.display = 'none';
-    
+
     minimap.appendChild(toggleButton);
 
     window.addEventListener('keydown', function (e) {
@@ -677,8 +647,14 @@ function addMinimap() {
         const ratioX = canvasWidth / minimapContent.offsetWidth;
         const ratioY = canvasHeight / minimapContent.offsetHeight;
 
-        const targetX = clickX * ratioX - (viewportWidth / 2);
-        const targetY = clickY * ratioY - (viewportHeight / 2);
+        let targetX = clickX * ratioX - (viewportWidth / 2) * zoomLevel;
+        let targetY = clickY * ratioY - (viewportHeight / 2) * zoomLevel;
+
+        const maxScrollX = Math.max(0, canvasWidth * zoomLevel - viewportWidth);
+        const maxScrollY = Math.max(0, canvasHeight * zoomLevel - viewportHeight);
+
+        targetX = Math.max(0, Math.min(targetX, maxScrollX));
+        targetY = Math.max(0, Math.min(targetY, maxScrollY));
 
         animateScrollTo(targetX, targetY);
     });
@@ -703,8 +679,8 @@ function updateMinimap() {
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
 
-    const canvasWidth = notePostsContainer.offsetWidth / zoomLevel;
-    const canvasHeight = notePostsContainer.offsetHeight / zoomLevel;
+    const canvasWidth = notePostsContainer.offsetWidth;
+    const canvasHeight = notePostsContainer.offsetHeight;
     const minimapWidth = minimap.offsetWidth;
     const minimapHeight = minimap.offsetHeight;
 
@@ -724,8 +700,8 @@ function updateMinimap() {
     notes.forEach(note => {
         const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
-        const w = (note.offsetWidth / zoomLevel) * scaleX;
-        const h = (note.offsetHeight / zoomLevel) * scaleY;
+        const w = note.offsetWidth * scaleX
+        const h = note.offsetHeight * scaleY
 
         const noteIndicator = document.createElement('div');
         noteIndicator.className = 'minimap-note-indicator';
@@ -744,8 +720,8 @@ function updateMinimap() {
     images.forEach(img => {
         const x = (parseFloat(img.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(img.getAttribute('data-y')) || 0) * scaleY;
-        const w = (img.offsetWidth / zoomLevel) * scaleX;
-        const h = (img.offsetHeight / zoomLevel) * scaleY;
+        const w = img.offsetWidth * scaleX;
+        const h = img.offsetHeight * scaleY;
 
         const imgIndicator = document.createElement('div');
         imgIndicator.className = 'minimap-note-indicator';
@@ -761,7 +737,6 @@ function updateMinimap() {
         minimap.appendChild(imgIndicator);
     });
 }
-
 function debouncedUpdateMinimap() {
     if (minimapUpdateTimeout) {
         clearTimeout(minimapUpdateTimeout);
@@ -770,6 +745,14 @@ function debouncedUpdateMinimap() {
 }
 
 function animateScrollTo(targetX, targetY) {
+    const canvasWidth = notePostsContainer.offsetWidth * zoomLevel;
+    const canvasHeight = notePostsContainer.offsetHeight * zoomLevel;
+
+    const maxScrollLeft = Math.max(0, canvasWidth - viewportWidth);
+    const maxScrollTop = Math.max(0, canvasHeight - viewportHeight);
+    targetX = Math.max(0, Math.min(targetX, maxScrollLeft));
+    targetY = Math.max(0, Math.min(targetY, maxScrollTop));
+
     const currentScrollLeft = canvasContainer.scrollLeft;
     const currentScrollTop = canvasContainer.scrollTop;
     const scrollDistanceX = targetX - currentScrollLeft;
@@ -793,37 +776,21 @@ function animateScrollTo(targetX, targetY) {
     requestAnimationFrame(animateScroll);
 }
 
+
 function addSearchFeature() {
     searchContainer = document.createElement('div');
     searchContainer.id = 'search-container';
-    searchContainer.style.position = 'fixed';
-    searchContainer.style.top = '20px';
-    searchContainer.style.right = '20px';
-    searchContainer.style.zIndex = '1000';
-    searchContainer.style.display = 'flex';
-    searchContainer.style.alignItems = 'center';
-    searchContainer.style.gap = '10px';
     document.body.appendChild(searchContainer);
 
     const searchInput = document.createElement('input');
     searchInput.id = 'search-input';
     searchInput.type = 'text';
     searchInput.placeholder = 'Search notes...';
-    searchInput.style.padding = '8px 12px';
-    searchInput.style.borderRadius = '20px';
-    searchInput.style.border = '1px solid #ccc';
-    searchInput.style.width = '200px';
-    searchInput.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
     searchContainer.appendChild(searchInput);
 
     const searchButton = document.createElement('button');
+    searchButton.id = 'search-button';
     searchButton.textContent = 'Search';
-    searchButton.style.padding = '8px 15px';
-    searchButton.style.borderRadius = '20px';
-    searchButton.style.border = 'none';
-    searchButton.style.backgroundColor = '#5d3fd3';
-    searchButton.style.color = 'white';
-    searchButton.style.cursor = 'pointer';
     searchContainer.appendChild(searchButton);
 
     // all note containers **
@@ -837,18 +804,6 @@ function addSearchFeature() {
 
     const resultsContainer = document.createElement('div');
     resultsContainer.id = 'search-results';
-    resultsContainer.style.position = 'fixed';
-    resultsContainer.style.top = '60px';
-    resultsContainer.style.right = '20px';
-    resultsContainer.style.width = '300px';
-    resultsContainer.style.maxHeight = '400px';
-    resultsContainer.style.overflowY = 'auto';
-    resultsContainer.style.backgroundColor = 'white';
-    resultsContainer.style.borderRadius = '5px';
-    resultsContainer.style.boxShadow = '0 3px 10px rgba(0,0,0,0.2)';
-    resultsContainer.style.padding = '10px';
-    resultsContainer.style.zIndex = '1000';
-    resultsContainer.style.display = 'none';
     document.body.appendChild(resultsContainer);
 
     searchButton.addEventListener('click', performSearch);
@@ -890,7 +845,7 @@ function addSearchFeature() {
 
             const categoryId = container.id.replace('notes-', '');
             const categoryName = categoryMap[categoryId] || 'Unknown Category';
-            
+
             const notes = container.querySelectorAll('.note-section');
             notes.forEach(note => {
                 const titleElement = note.querySelector('.updateLiveTitle');
@@ -947,44 +902,32 @@ function addSearchFeature() {
         });
 
         const totalCount = document.createElement('div');
-        totalCount.style.padding = '8px';
-        totalCount.style.marginBottom = '10px';
-        totalCount.style.fontWeight = 'bold';
-        totalCount.style.borderBottom = '2px solid #5d3fd3';
+        totalCount.id = 'search-total-count';
         totalCount.textContent = `Found ${results.length} result${results.length !== 1 ? 's' : ''}`;
         resultsContainer.appendChild(totalCount);
 
         Object.keys(resultsByCategory).forEach(categoryId => {
             const categoryResults = resultsByCategory[categoryId];
-            
             const categoryHeader = document.createElement('div');
-            categoryHeader.style.padding = '5px 8px';
-            categoryHeader.style.backgroundColor = '#f0f0f0';
-            categoryHeader.style.margin = '5px 0';
-            categoryHeader.style.fontWeight = 'bold';
-            categoryHeader.style.borderLeft = '3px solid #5d3fd3';
+            categoryHeader.id = 'search-category-header';
             categoryHeader.textContent = `${categoryResults.name} (${categoryResults.results.length})`;
-            
+
             categoryHeader.style.cursor = 'pointer';
             categoryHeader.addEventListener('click', () => {
                 switchToCategory(categoryId);
             });
-            
+
             resultsContainer.appendChild(categoryHeader);
             categoryResults.results.forEach(result => {
                 const resultItem = document.createElement('div');
-                resultItem.className = 'search-result-item';
-                resultItem.style.padding = '8px';
-                resultItem.style.marginLeft = '10px';
-                resultItem.style.borderBottom = '1px solid #eee';
-                resultItem.style.cursor = 'pointer';
+                resultItem.id = 'search-result-item';
 
                 let titleDisplay = result.title;
                 if (result.titleMatch) {
                     const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
                     titleDisplay = titleDisplay.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
                 }
-                
+
                 let contentPreview = result.content;
                 if (contentPreview.length > 80) {
                     contentPreview = contentPreview.substring(0, 80) + '...';
@@ -1047,7 +990,7 @@ function addSearchFeature() {
 
                 categoryItem.classList.add('selected');
                 selectedCategoryId = categoryId;
-                
+
                 updateAddNotesButton();
                 updateAddImageButton();
                 updateMinimap();
@@ -1059,8 +1002,8 @@ function addSearchFeature() {
         const x = parseFloat(noteElement.getAttribute('data-x')) || 0;
         const y = parseFloat(noteElement.getAttribute('data-y')) || 0;
 
-        const targetX = x - (viewportWidth / 2) + (noteElement.offsetWidth / 2);
-        const targetY = y - (viewportHeight / 2) + (noteElement.offsetHeight / 2);
+        const targetX = (x - (viewportWidth / 2) + (noteElement.offsetWidth / 2)) * zoomLevel;
+        const targetY = (y - (viewportHeight / 2) + (noteElement.offsetHeight / 2)) * zoomLevel;
 
         animateScrollTo(targetX, targetY);
 
@@ -1090,17 +1033,20 @@ function addSearchFeature() {
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
-    /* NEED FIX
-    document.addEventListener('keydown', function(e) {
-        if (e.code === "KeyF") {
+    //////
+    document.addEventListener('keydown', function (e) {
+        const activeElement = document.activeElement;
+        const isTyping = activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA';
+
+        if (e.code === "KeyF" && !isTyping) {
             e.preventDefault();
             e.stopPropagation();
             searchVisible = !searchVisible;
-            searchContainer.style.display = searchVisible ? 'none' : 'flex';
-            console.log("Search toggled:", searchVisible); 
+            searchContainer.style.display = searchVisible ? 'flex' : 'none';
+            console.log("Search toggled:", searchVisible);
         }
     }, true)
-     */
     return {
         container: searchContainer,
         input: searchInput,
@@ -1127,9 +1073,9 @@ function integrateNewFeatures() {
     const originalHandleMouseWheelZoom = handleMouseWheelZoom;
     window.handleMouseWheelZoom = function (event) {
         originalHandleMouseWheelZoom(event);
-        debouncedUpdateMinimap(); 
+        debouncedUpdateMinimap();
     };
-    
+
     const originalGetNotes = window.getNotes;
     window.getNotes = async function (categoryId) {
         await originalGetNotes(categoryId);
@@ -1155,8 +1101,8 @@ function integrateNewFeatures() {
         const observer = new MutationObserver(debouncedUpdateMinimap);
         observer.observe(element, { attributes: true, attributeFilter: ['style', 'data-x', 'data-y'] });
     });
-    setInterval(updateMinimap, 0); 
-    setTimeout(updateMinimap, 500); 
+    setInterval(updateMinimap, 0);
+    setTimeout(updateMinimap, 500);
 }
 
 
@@ -1172,18 +1118,8 @@ if (document.querySelector('.canvas-container')) {
 
 function updateNotification() {
     const notification = document.createElement('div');
+    notification.id = 'notification';
     notification.textContent = 'Right-click and drag to pan | Ctrl+R to reset camera | Tab to toggle minimap';
-    notification.style.position = 'fixed';
-    notification.style.bottom = '10px';
-    notification.style.left = '50%';
-    notification.style.transform = 'translateX(-50%)';
-    notification.style.padding = '5px 15px';
-    notification.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    notification.style.color = 'white';
-    notification.style.borderRadius = '20px';
-    notification.style.fontSize = '14px';
-    notification.style.zIndex = '1000';
-    notification.style.opacity = '1';
     document.body.appendChild(notification);
 
     setTimeout(() => {
@@ -1214,9 +1150,4 @@ document.addEventListener('DOMContentLoaded', function () {
     initInfinityCanvas();
 });
 
-
-// fix search feature when zoom in/out only work when viewpoint 100%
-// notePosts fix the background not full only full when viewpoint 100%
-// update viewpoint < 100% size
-// add key for seach and new note / image , toogle container
 /////////////////////////////////////////////////////////////////////////////////

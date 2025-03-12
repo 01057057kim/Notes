@@ -7,16 +7,16 @@ interact('.resize-drag:not(.image-container)')
                 const scaledDeltaLeft = event.deltaRect.left / currentZoom;
                 const scaledDeltaTop = event.deltaRect.top / currentZoom;
                 let { x, y } = event.target.dataset;
-                
+
                 x = (parseFloat(x) || 0) + scaledDeltaLeft;
                 y = (parseFloat(y) || 0) + scaledDeltaTop;
-                
+
                 Object.assign(event.target.style, {
                     width: `${event.rect.width / currentZoom}px`,
                     height: `${event.rect.height / currentZoom}px`,
                     transform: `translate(${x}px, ${y}px)`
                 });
-                
+
                 Object.assign(event.target.dataset, { x, y });
             },
             end: function (event) {
@@ -48,20 +48,20 @@ interact('.resize-drag:not(.image-container)')
                 const currentZoom = zoomLevel || 1;
                 const scaledDx = event.dx / currentZoom;
                 const scaledDy = event.dy / currentZoom;
-                
+
                 const x = (parseFloat(target.getAttribute('data-x')) || 0) + scaledDx;
                 const y = (parseFloat(target.getAttribute('data-y')) || 0) + scaledDy;
-                
+
                 target.style.transform = `translate(${x}px, ${y}px)`;
-                
+
                 target.setAttribute('data-x', x);
                 target.setAttribute('data-y', y);
-                
+
                 target.style.zIndex = '1000';
             },
             end(event) {
                 event.target.style.zIndex = '1';
-                
+
                 const noteId = event.target.querySelector('textarea')?.dataset.noteId;
                 if (noteId) {
                     saveNotePosition(noteId, event.target);
@@ -635,105 +635,105 @@ async function loadImageById(imageId, categoryId) {
 
 function setupImageInteractions(imgContainer, imageId) {
     interact(`#${imgContainer.id}`)
-    .resizable({
-        edges: { top: true, left: true, bottom: true, right: true },
-        listeners: {
-            move: function (event) {
-                const currentZoom = zoomLevel || 1;
-                const scaledDeltaLeft = event.deltaRect.left / currentZoom;
-                const scaledDeltaTop = event.deltaRect.top / currentZoom;
-                
-                let { x, y } = event.target.dataset;
-                x = (parseFloat(x) || 0) + scaledDeltaLeft;
-                y = (parseFloat(y) || 0) + scaledDeltaTop;
-                
-                Object.assign(event.target.style, {
-                    width: `${event.rect.width / currentZoom}px`,
-                    height: `${event.rect.height / currentZoom}px`,
-                    transform: `translate(${x}px, ${y}px)`
-                });
-                
-                Object.assign(event.target.dataset, { x, y });
+        .resizable({
+            edges: { top: true, left: true, bottom: true, right: true },
+            listeners: {
+                move: function (event) {
+                    const currentZoom = zoomLevel || 1;
+                    const scaledDeltaLeft = event.deltaRect.left / currentZoom;
+                    const scaledDeltaTop = event.deltaRect.top / currentZoom;
+
+                    let { x, y } = event.target.dataset;
+                    x = (parseFloat(x) || 0) + scaledDeltaLeft;
+                    y = (parseFloat(y) || 0) + scaledDeltaTop;
+
+                    Object.assign(event.target.style, {
+                        width: `${event.rect.width / currentZoom}px`,
+                        height: `${event.rect.height / currentZoom}px`,
+                        transform: `translate(${x}px, ${y}px)`
+                    });
+
+                    Object.assign(event.target.dataset, { x, y });
+                },
+                end: function (event) {
+                    const imageId = event.target.querySelector('textarea')?.dataset.imageId;
+                    if (imageId) {
+                        saveImagePosition(imageId, event.target);
+                    }
+                }
             },
-            end: function (event) {
-                const imageId = event.target.querySelector('textarea')?.dataset.imageId;
-                if (imageId) {
-                    saveImagePosition(imageId, event.target);
+            modifiers: [
+                interact.modifiers.restrictSize({
+                    min: { width: 200, height: 150 }
+                })
+            ],
+            inertia: true
+        })
+        .draggable({
+            inertia: true,
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: '#notePosts',
+                    endOnly: true
+                })
+            ],
+            autoScroll: true,
+            listeners: {
+                move(event) {
+                    const target = event.target;
+                    const currentZoom = zoomLevel || 1;
+                    const scaledDx = event.dx / currentZoom;
+                    const scaledDy = event.dy / currentZoom;
+
+                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + scaledDx;
+                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + scaledDy;
+
+                    target.style.transform = `translate(${x}px, ${y}px)`;
+
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+
+                    target.style.zIndex = '1000';
+                },
+                end(event) {
+                    event.target.style.zIndex = '1';
+
+                    const imageId = event.target.querySelector('textarea')?.dataset.imageId;
+                    if (imageId) {
+                        saveImagePosition(imageId, event.target);
+                    }
                 }
             }
-        },
-        modifiers: [
-            interact.modifiers.restrictSize({
-                min: { width: 200, height: 150 }
-            })
-        ],
-        inertia: true
-    })
-    .draggable({
-        inertia: true,
-        modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: '#notePosts',
-                endOnly: true
-            })
-        ],
-        autoScroll: true,
-        listeners: {
-            move(event) {
-                const target = event.target;
-                const currentZoom = zoomLevel || 1;
-                const scaledDx = event.dx / currentZoom;
-                const scaledDy = event.dy / currentZoom;
-                
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + scaledDx;
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + scaledDy;
-                
-                target.style.transform = `translate(${x}px, ${y}px)`;
-                
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-                
-                target.style.zIndex = '1000';
-            },
-            end(event) {
-                event.target.style.zIndex = '1';
-                
-                const imageId = event.target.querySelector('textarea')?.dataset.imageId;
-                if (imageId) {
-                    saveImagePosition(imageId, event.target);
-                }
-            }
-        }
-    });
-
-async function saveImagePosition(imageId, element) {
-    try {
-        const x = parseFloat(element.getAttribute('data-x')) || 0;
-        const y = parseFloat(element.getAttribute('data-y')) || 0;
-        const width = parseFloat(element.style.width) || 500;
-        const height = parseFloat(element.style.height) || 281;
-
-        const position = { x, y, width, height };
-
-        const response = await fetch('/image/updateposition', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ imageId, position })
         });
 
-        const data = await response.json();
+    async function saveImagePosition(imageId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width) || 500;
+            const height = parseFloat(element.style.height) || 281;
 
-        if (data.success) {
-            console.log('Successfully updated image position');
-        } else {
-            console.error('Failed to update image position:', data.message);
-            alert(`Failed to save position: ${data.message}`);
+            const position = { x, y, width, height };
+
+            const response = await fetch('/image/updateposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ imageId, position })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log('Successfully updated image position');
+            } else {
+                console.error('Failed to update image position:', data.message);
+                alert(`Failed to save position: ${data.message}`);
+            }
+        } catch (err) {
+            console.error('Update image position failed:', err);
         }
-    } catch (err) {
-        console.error('Update image position failed:', err);
     }
-}
 }
 
 async function deleteImage(imageId) {
