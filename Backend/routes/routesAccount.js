@@ -9,5 +9,4 @@ router.post('/signin', signIn);
 router.post('/signout', signOut);
 
 router.get('/getusername', getUsername);
-
 module.exports = router;

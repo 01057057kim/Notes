@@ -60,6 +60,19 @@ nav .btn-login:hover {
     color: white;
 }
 
+nav .btn-started {
+    background: var(--gradient-primary);
+    border: 2px solid var(--primary-color);
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+nav .btn-started:hover {
+    background: transparent;
+    color: var(--primary-color);
+}
+
 main {
     display: flex;
     justify-content: center;

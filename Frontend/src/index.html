@@ -15,6 +15,7 @@
         <div class="logo"><a href="index.html">NoteNest</a></div>
         <nav>
             <button class="btn btn-login">Login</button>
+            <button class="btn btn-started">Get Started</button>
         </nav>
     </header>
     <main>
@@ -45,7 +46,7 @@
             window.location.href = '/login.html';
         });
 
-        document.querySelector('.btn-primary').addEventListener('click', () => {
+        document.querySelector('.btn-primary, .btn-started').addEventListener('click', () => {
             window.location.href = '/register.html';
         });
     </script>

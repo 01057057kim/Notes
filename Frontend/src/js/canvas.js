@@ -667,17 +667,17 @@ function addMinimap() {
     };
 }
 
-
 function updateMinimap() {
     const minimap = document.getElementById('minimap-content');
     const indicator = document.getElementById('viewport-indicator');
     if (!minimap || !indicator) return;
 
-    const noteIndicators = minimap.querySelectorAll('.minimap-note-indicator');
-    noteIndicators.forEach(ind => ind.remove());
-
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
+    
+    while (minimap.querySelector('.minimap-note-indicator')) {
+        minimap.querySelector('.minimap-note-indicator').remove();
+    }
 
     const canvasWidth = notePostsContainer.offsetWidth;
     const canvasHeight = notePostsContainer.offsetHeight;
@@ -692,29 +692,29 @@ function updateMinimap() {
     const viewportW = (viewportWidth / zoomLevel) * scaleX;
     const viewportH = (viewportHeight / zoomLevel) * scaleY;
 
-    indicator.style.left = viewportX + 'px';
-    indicator.style.top = viewportY + 'px';
+    indicator.style.transform = `translate(${viewportX}px, ${viewportY}px)`;
     indicator.style.width = viewportW + 'px';
     indicator.style.height = viewportH + 'px';
 
+    const fragment = document.createDocumentFragment();
+    
     notes.forEach(note => {
         const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
-        const w = note.offsetWidth * scaleX
-        const h = note.offsetHeight * scaleY
+        const w = note.offsetWidth * scaleX;
+        const h = note.offsetHeight * scaleY;
 
         const noteIndicator = document.createElement('div');
         noteIndicator.className = 'minimap-note-indicator';
         noteIndicator.style.position = 'absolute';
-        noteIndicator.style.left = x + 'px';
-        noteIndicator.style.top = y + 'px';
+        noteIndicator.style.transform = `translate(${x}px, ${y}px)`;
         noteIndicator.style.width = w + 'px';
         noteIndicator.style.height = h + 'px';
         noteIndicator.style.backgroundColor = '#5d3fd3';
         noteIndicator.style.opacity = '0.6';
         noteIndicator.style.pointerEvents = 'none';
 
-        minimap.appendChild(noteIndicator);
+        fragment.appendChild(noteIndicator);
     });
 
     images.forEach(img => {
@@ -726,17 +726,20 @@ function updateMinimap() {
         const imgIndicator = document.createElement('div');
         imgIndicator.className = 'minimap-note-indicator';
         imgIndicator.style.position = 'absolute';
-        imgIndicator.style.left = x + 'px';
-        imgIndicator.style.top = y + 'px';
+        imgIndicator.style.transform = `translate(${x}px, ${y}px)`;
         imgIndicator.style.width = w + 'px';
         imgIndicator.style.height = h + 'px';
         imgIndicator.style.backgroundColor = '#3f8dd3';
         imgIndicator.style.opacity = '0.6';
         imgIndicator.style.pointerEvents = 'none';
 
-        minimap.appendChild(imgIndicator);
+        fragment.appendChild(imgIndicator);
     });
+
+    // Append all indicators at once to minimize reflows
+    minimap.appendChild(fragment);
 }
+
 function debouncedUpdateMinimap() {
     if (minimapUpdateTimeout) {
         clearTimeout(minimapUpdateTimeout);
