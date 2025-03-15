@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const account = require('../models/account');
+const passport = require('passport');
+require('dotenv').config();
 
 const signUp = async (req, res) => {
     try {
@@ -13,7 +15,7 @@ const signUp = async (req, res) => {
             });
         }
 
-        const hashEncoded = 10
+        const hashEncoded = parseInt(process.env.BCRYPT_ROUND)
         const hash = await bcrypt.hash(password, hashEncoded);
 
         const newAccount = new account({
@@ -37,6 +39,7 @@ const signUp = async (req, res) => {
         });
     }
 };
+
 
 const signIn = async (req, res) => {
     try{
@@ -62,7 +65,6 @@ const signIn = async (req, res) => {
         }
         res.status(200).json({
             success: true,
-            message: 'Signin successful'
         });
     }catch(err){
         console.error('Failed to signin:', err);
@@ -109,30 +111,63 @@ const signOut = async (req, res) => {
 
 const getUsername = async (req, res) => {
     try{
+        if (req.isAuthenticated && req.isAuthenticated()) {
+            return res.json({
+                success: true,
+                username: req.user.username
+            });
+        }
+        
         if(!req.session.user){
             return res.status(400).json({
                 success: false,
                 message: 'User not logged in'
             });
         }
+        
         res.json({
             success: true,
             username: req.session.user.username
-        })
+        });
 
     }catch(err){
         console.error('Failed to get username', err);
         res.status(500).json({
             success: false,
             message: 'error during get username'
-        })
+        });
     }
 }
+
+const googleAuth = passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+});
+
+const googleCallback = (req, res, next) => {
+    passport.authenticate('google', async (err, user, info) => {
+        if (err) {
+            console.error('Google authentication error:', err);
+            return res.redirect('/login.html?error=google-auth-failed');
+        }
+        
+        if (!user) {
+            return res.redirect('/login.html?error=no-user-found');
+        }
+
+        req.session.user = {
+            username: user.username,
+            id: user._id
+        };
+        
+        return res.redirect('/app.html');
+    })(req, res, next);
+};
 
 module.exports = {
     signUp,
     signIn,
     signOut,
-    getUsername
+    getUsername,
+    googleAuth,
+    googleCallback
 };
-

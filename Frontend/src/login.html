@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,11 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
+        rel="stylesheet">
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
+
 <body>
     <main>
         <div class="container">
@@ -22,6 +25,9 @@
                 <div class="container-password">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required minlength="6" maxlength="24">
+                </div>
+                <div class="google">
+                    <button id="google-login" class="login-with-google-btn">Login with Google</button>
                 </div>
                 <div class="container-button">
                     <button type="submit">Sign In</button>
@@ -36,18 +42,18 @@
         window.location.href = 'register.html';
     });
 
-    document.getElementById('signin-form').addEventListener('submit', async function(event){
+    document.getElementById('signin-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        if(!username || !password){
+        if (!username || !password) {
             alert('Please fill in all fields');
             console.log('Please fill in all fields');
             return;
         }
 
-        try{
+        try {
             const response = await fetch('http://localhost:3000/account/signin', {
                 method: 'POST',
                 headers: {
@@ -61,14 +67,23 @@
 
             const data = await response.json();
 
-            alert(data.message);
+            console.log(data.message);
 
-            if(data.success){
+            if (data.success) {
                 window.location.replace('/app.html');
             }
         } catch (error) {
             console.log('Error:', error);
         }
     });
+    document.addEventListener('DOMContentLoaded', function () {
+        const googleLoginButton = document.getElementById('google-login');
+
+        googleLoginButton.addEventListener('click', function (event) {
+            event.preventDefault(); 
+            window.location.href = 'http://localhost:3000/account/google';
+        });
+    });
 </script>
+
 </html>
