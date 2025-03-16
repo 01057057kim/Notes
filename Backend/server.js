@@ -13,13 +13,12 @@ const app = express();
 
 setupMiddlewares(app);
 
-const { accountDB, categoryDB, notesDB, imageDB } = connectDB();
+const { accountDB, categoryDB, notesDB, imageDB, verifyDB } = connectDB();
 
 app.use('/account', accountRoutes);
 app.use('/category', categoryRoutes);
 app.use('/notes', notesRoutes)
 app.use('/image', imageRoutes)
-
 
 app.listen(port, () => {
     console.log('server online')

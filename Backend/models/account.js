@@ -9,7 +9,7 @@ const accountSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    email:{
+    email: {
         type: String,
         required: true,
         unique: true
@@ -18,7 +18,13 @@ const accountSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    googleId: {
+        type: String
+    }
 });
 
 const Account = accountDB.model('Account', accountSchema);

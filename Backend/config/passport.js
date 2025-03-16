@@ -13,16 +13,26 @@ module.exports = function(passport) {
             let user = await Account.findOne({ email: profile.emails[0].value });
             
             if (user) {
-                return done(null, user);
+                if (user.googleId) {
+                    return done(null, user);
+                }else {
+                    user.googleId = profile.id;
+                    await user.save();
+                    return done(null, false, { 
+                        message: 'This email is already registered with a password. Please login with your password or use a different Google account.' 
+                    });
+                }
             } else {
                 const randomPassword = Math.random().toString(36).slice(-10);
-                const hashEncoded = 10;
+                const hashEncoded = parseInt(process.env.BCRYPT_ROUND);
                 const hash = await bcrypt.hash(randomPassword, hashEncoded);
                 
                 const newUser = new Account({
                     username: profile.displayName,
                     email: profile.emails[0].value,
-                    password: hash
+                    password: hash,
+                    googleId: profile.id,
+                    isVerified: true
                 });
                 
                 await newUser.save();
