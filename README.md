@@ -38,12 +38,12 @@
     │   └── .env
     ├── Frontend/
     │   └── src/
-    │       ├── css
-    │       ├── app.css
-    │       ├── index.css
-    │       ├── login.css
-    │       ├── notification.css
-    │       ├── register.css
+    │       ├── css/
+    │       │   ├── app.css
+    │       │   ├── index.css
+    │       │   ├── login.css
+    │       │   ├── notification.css
+    │       │   └── register.css
     │       ├── js/
     │       │   ├── app.js
     │       │   ├── canvas.js
