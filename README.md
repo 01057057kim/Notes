@@ -7,7 +7,8 @@
 ## Demo-2
 ![til](./Images/Demo-2.gif)
 
-## Structure
+## Project Structure
+```
 └── Notes/
     ├── Backend/
     │   ├── config/
@@ -54,6 +55,7 @@
     ├── .gitignore
     ├── package-lock.json
     └── package.json
+```
     
 ### Full-stack Notes app
 
