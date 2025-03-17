@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/notification.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
         rel="stylesheet">
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
-
 <body>
     <main>
         <div class="container">
@@ -25,18 +25,21 @@
                 <div class="container-password">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required minlength="6" maxlength="24">
-                </div>
-                <div class="google">
-                    <button id="google-login" class="login-with-google-btn">Login with Google</button>
+                    <a href="forgot-password.html" class="underlineFill">Forget Password?</a>
                 </div>
                 <div class="container-button">
                     <button type="submit">Sign In</button>
                     <button id="register">Sign Up</button>
                 </div>
+                <span>----------- OR -----------</span>
+                <div class="google">
+                    <button id="google-login" class="login-with-google-btn">Login with Google</button>
+                </div>
             </form>
         </div>
     </main>
 </body>
+<script src="notification.js"></script>
 <script>
     document.getElementById('register').addEventListener('click', () => {
         window.location.href = 'register.html';
@@ -48,8 +51,7 @@
         const password = document.getElementById('password').value;
 
         if (!username || !password) {
-            alert('Please fill in all fields');
-            console.log('Please fill in all fields');
+            ntf('Please fill in all fields','error');
             return;
         }
 
@@ -67,13 +69,14 @@
 
             const data = await response.json();
 
-            console.log(data.message);
+            ntf(data.message, data.success ? 'success' : 'error');
 
             if (data.success) {
                 window.location.replace('/app.html');
             }
         } catch (error) {
             console.log('Error:', error);
+            ntf('Connection error. Please try again later.','error')
         }
     });
     document.addEventListener('DOMContentLoaded', function () {

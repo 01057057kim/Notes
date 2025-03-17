@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const account = require('../models/account');
 const passport = require('passport');
 const verification = require('../models/verification');
-const { sendVerificationEmail } = require('../config/email');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../config/email');
 require('dotenv').config();
 
 const generateVerificationCode = () => {
@@ -17,7 +17,7 @@ const signUp = async (req, res) => {
         if (existingAccount) {
             return res.status(400).json({
                 success: false,
-                message: 'Email already registered. Please use a different email or try logging in.'
+                message: 'Username already taken. Please choose a different username'
             });
         }
 
@@ -25,7 +25,7 @@ const signUp = async (req, res) => {
         if (existingEmail) {
             return res.status(400).json({
                 success: false,
-                message: 'Email already exists'
+                message: 'Email already registered. Please use a different email or try logging in'
             });
         }
 
@@ -300,6 +300,93 @@ const googleCallback = (req, res, next) => {
     })(req, res, next);
 };
 
+const requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const userAccount = await account.findOne({ email });
+
+        if (!userAccount) {
+            return res.status(400).json({
+                success: false,
+                message: 'No account found with this email'
+            });
+        }
+
+        const resetToken = generateVerificationCode() + Date.now().toString();
+        const resetExpires = Date.now() + 3600000; // 1 hour
+
+        await account.findOneAndUpdate(
+            { email },
+            {
+                resetPasswordToken: resetToken,
+                resetPasswordExpires: resetExpires
+            }
+        );
+
+        const resetLink = `http://localhost:3000/reset-password.html?token=${resetToken}`;
+        // const resetLink = `${process.env.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
+        const emailSent = await sendPasswordResetEmail(email, resetLink);
+
+        if (!emailSent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to send password reset email'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Password reset email sent. Please check your inbox.'
+        });
+    } catch (err) {
+        console.error('Failed to request password reset:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error requesting password reset'
+        });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        const userAccount = await account.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!userAccount) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password reset token is invalid or has expired'
+            });
+        }
+
+        const hashEncoded = parseInt(process.env.BCRYPT_ROUND);
+        const hash = await bcrypt.hash(newPassword, hashEncoded);
+
+        await account.findOneAndUpdate(
+            { _id: userAccount._id },
+            {
+                password: hash,
+                resetPasswordToken: undefined,
+                resetPasswordExpires: undefined
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Password has been reset successfully. You can now log in with your new password.'
+        });
+    } catch (err) {
+        console.error('Failed to reset password:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error resetting password'
+        });
+    }
+};
 
 module.exports = {
     signUp,
@@ -309,5 +396,7 @@ module.exports = {
     verifyEmail,
     resendVerificationCode,
     googleAuth,
-    googleCallback
+    googleCallback,
+    requestPasswordReset,
+    resetPassword
 };

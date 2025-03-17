@@ -24,7 +24,13 @@ const accountSchema = new mongoose.Schema({
     },
     googleId: {
         type: String
-    }
+    },
+    resetPasswordToken: {
+        type: String
+    },
+    resetPasswordExpires: {
+        type: Date
+    },
 });
 
 const Account = accountDB.model('Account', accountSchema);

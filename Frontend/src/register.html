@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/register.css">
+    <link rel="stylesheet" href="css/notification.css">
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
 
@@ -38,7 +39,7 @@
                     </div>
                     <div class="container-button">
                         <button type="submit">Sign up</button>
-                        <button id="back">Back</button>
+                        <button id="back" type="button">Back</button>
                     </div>
                 </form>
             </div>
@@ -46,7 +47,7 @@
         <div class="container-verification" style="display: none;">
             <div class="center">
                 <h2>Please verify your email</h2>
-                <form action="verification">
+                <form id="verification-form">
                     <div class="passcode">
                         <input type="text" placeholder="Enter verification code">
                     </div>
@@ -55,167 +56,12 @@
                         <button id="back-verify" type="button">Back</button>
                     </div>
                 </form>
+                <div class="resend">
+                    <button id="resend-code" type="button">Resend Code</button>
+                </div>
             </div>
         </div>
     </main>
-</body>
-<script>
-    document.getElementById('back').addEventListener('click', () => {
-        window.location.href = '/index.html';
-    });
-
-    document.getElementById('signup-form').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const signupButton = event.submitter;
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-
-        if (password !== confirmPassword) {
-            alert('Password and Confirm Password do not match');
-            return;
-        }
-
-        signupButton.disabled = true;
-        signupButton.textContent = 'Loading...';
-
-        try {
-            const response = await fetch('http://localhost:3000/account/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username,
-                    email,
-                    password
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                sessionStorage.setItem('verificationEmail', email);
-                document.querySelector('.container').style.display = 'none';
-                document.querySelector('.container-verification').style.display = 'block';
-                alert('Please check your email for verification code');
-            } else {
-                if (data.message && data.message.toLowerCase().includes('email already')) {
-                    alert('This email is already registered. Please use a different email or try logging in.');
-                    document.getElementById('email').focus();
-                } else {
-                    alert(data.message);
-                }
-            }
-        } catch (error) {
-            console.error('Error registering user:', error);
-            alert('Failed to register. Please try again.');
-        } finally {
-            signupButton.disabled = false;
-            signupButton.textContent = 'Sign up';
-        }
-    });
-
-    document.querySelector('.container-verification form').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const confirmButton = event.submitter;
-        confirmButton.disabled = true;
-        confirmButton.textContent = 'Loading...';
-
-        const code = document.querySelector('.passcode input').value;
-        const email = sessionStorage.getItem('verificationEmail');
-
-        if (!code) {
-            alert('Please enter verification code');
-            confirmButton.disabled = false;
-            confirmButton.textContent = 'Confirm';
-            return;
-        }
-
-        if (!email) {
-            alert('Email information missing. Please try signing up again.');
-            window.location.reload();
-            confirmButton.disabled = false;
-            confirmButton.textContent = 'Confirm';
-            return;
-        }
-
-        try {
-            const response = await fetch('http://localhost:3000/account/verify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    code
-                })
-            });
-
-            const data = await response.json();
-            alert(data.message);
-
-            if (data.success) {
-                sessionStorage.removeItem('verificationEmail');
-                window.location.href = '/login.html';
-            }
-        } catch (error) {
-            console.error('Error verifying email:', error);
-            alert('Failed to verify email. Please try again.');
-        } finally {
-            confirmButton.disabled = false;
-            confirmButton.textContent = 'Confirm';
-        }
-    });
-
-    document.querySelector('.container-verification #back-verify').addEventListener('click', function (event) {
-        event.preventDefault();
-        document.querySelector('.container').style.display = 'block';
-        document.querySelector('.container-verification').style.display = 'none';
-    });
-
-    document.querySelector('.container #back').addEventListener('click', function () {
-        window.location.href = '/index.html';
-    });
-
-    document.querySelector('.container-verification').insertAdjacentHTML('beforeend',
-        '<div class="resend"><button id="resend-code" type="button">Resend Code</button></div>');
-
-    document.getElementById('resend-code').addEventListener('click', async function () {
-        const resendButton = this;
-        resendButton.disabled = true;
-        resendButton.textContent = 'Sending...';
-
-        const email = sessionStorage.getItem('verificationEmail');
-
-        if (!email) {
-            alert('Email information missing. Please try signing up again.');
-            window.location.reload();
-            resendButton.disabled = false;
-            resendButton.textContent = 'Resend Code';
-            return;
-        }
-
-        try {
-            const response = await fetch('http://localhost:3000/account/resend-verification', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email })
-            });
-
-            const data = await response.json();
-            alert(data.message);
-        } catch (error) {
-            console.error('Error resending verification code:', error);
-            alert('Failed to resend verification code. Please try again.');
-        } finally {
-            resendButton.disabled = false;
-            resendButton.textContent = 'Resend Code';
-        }
-    });
-</script>
-
+    <script src="notification.js"></script>
+    <script src="register.js"></script>
 </html>

@@ -2,7 +2,7 @@ class Notification {
     constructor({ ...options }) {
         this.type = options.type || "success";
         this.message = options.message || "";
-        this.timeout = options.timeout || 6000;
+        this.timeout = options.timeout || 3000;
         //if not success then error and timeout should increse
         if (this.type !== "success") {
             this.timeout = this.timeout * 2;
