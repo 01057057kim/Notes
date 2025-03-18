@@ -19,6 +19,8 @@ app.use('/account', accountRoutes);
 app.use('/category', categoryRoutes);
 app.use('/notes', notesRoutes)
 app.use('/image', imageRoutes)
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.listen(port, () => {
     console.log('server online')

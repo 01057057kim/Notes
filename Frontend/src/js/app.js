@@ -871,7 +871,49 @@ function updateAddImageButton() {
     }
 }
 
+async function getUsernameVerified() {
+    try {
+        const response = await fetch('/account/getusernameverified');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('usernameVerified').innerHTML = `
+            <div class="setting-info">
+                <div class="info">
+                    <label>Username</label><br>
+                    <label>Email</label><br>
+                    <label>Verified</label><br>
+                </div>
+                <div class="data">
+                    : <em><b>${data.username}</b></em><br>
+                    : <em>${data.email || 'Not available'}</em><br>
+                    :<span class="${data.isVerified ? 'verified-badge' : 'unverified-badge'}">
+                        ${data.isVerified ? 'Yes' : 'No'}</span>
+                        <button id="verifyEmail" class="btn">Verify with Email</button>
+                </div>
+            </div>`;
+            /*
+            if (!data.isVerified) {
+                document.getElementById('usernameVerified').innerHTML += `
+                <br><br>
+                <button id="verifyEmail" class="btn btn-primary">Verify with Email</button>
+                `;
+                document.getElementById('verifyEmail').addEventListener('click', function() {
+                    window.location.href = '/auth/google';
+                });
+            } */
+        } else {
+            console.error('Error fetching user data:', data.message);
+            document.getElementById('usernameVerified').innerHTML = `Error: ${data.message}`;
+        }
+    } catch (error) {
+        console.error('Username fetch error:', error);
+        document.getElementById('usernameVerified').innerHTML = `Error fetching user data`;
+    }
+}
+
 window.onload = function () {
+    getUsernameVerified();
     getUsername();
     getCategory();
     updateAddNotesButton();

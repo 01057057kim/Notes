@@ -14,6 +14,118 @@
     <script src="https://cdn.jsdelivr.net/npm/interactjs"></script>
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+    :root {
+        --vs-primary: 29 92 255;
+    }
+
+    .dialog {
+        position: relative;
+    }
+
+    dialog {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        padding: 1rem 3rem;
+        background: white;
+        min-width: 550px;
+        min-height: 50vh;
+        padding-top: 2rem;
+        border-radius: 20px;
+        border: 0;
+        box-shadow: 0 5px 30px 0 rgb(0 0 0 / 10%);
+        animation: fadeIn 1s ease both;
+        z-index: 2000;
+
+        &::backdrop {
+            animation: fadeIn 1s ease both;
+            background: rgba(14, 13, 13, 0.4);
+            z-index: 1999;
+            backdrop-filter: blur(20px);
+        }
+
+        .x {
+            filter: grayscale(1);
+            border: none;
+            background: none;
+            position: absolute;
+            top: 15px;
+            right: 10px;
+            transition: ease filter, transform 0.3s;
+            cursor: pointer;
+            transform-origin: center;
+
+            &:hover {
+                filter: grayscale(0);
+                transform: scale(1.1);
+            }
+        }
+
+        h2 {
+            font-weight: 600;
+            font-size: 2rem;
+            padding-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.3rem;
+            padding: 0.5rem 0;
+
+            a {
+                &:visited {
+                    color: rgb(var(--vs-primary));
+                }
+            }
+        }
+    }
+
+    .verified-badge {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .unverified-badge {
+        color: #F44336;
+        font-weight: bold;
+    }
+
+    #usernameVerified {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .setting-info {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .setting-info .info {
+        width: 25%;
+    }
+
+    .setting-info .data {
+        width: 75%;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
 
 <body>
     <div class="canvas-container">
@@ -22,7 +134,7 @@
                 <h1 class="container-account-logo signOut">NoteNest</h1>
                 <div class="container-account-div">
                     <label class="container-account-label" id="usernameLabel"></label>
-                    <button id="setting">⚙️</button>
+                    <button id="setting" onclick="window.dialog.showModal();">⚙️</button>
                     <button class="container-account-button signOut" id="signOut">⍈</button>
                 </div>
             </div>
@@ -54,13 +166,21 @@
         <div class="notePosts" id="notePosts">
         </div>
     </div>
+    <div class="dialog">
+        <dialog id="dialog">
+            <h2>Setting</h2>
+            <label id="usernameVerified"></label>
+            <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
+        </dialog>
+    </div>
 </body>
 <script src="js/canvas.js"></script>
 <script src="js/app.js"></script>
+<script>
+    document.getElementById('setting').addEventListener('click', function () {
+        getUsernameVerified();
+        window.dialog.showModal();
+    });
+</script>
 
 </html>
-
-<!-- Add notification to canvas js and app.js
-    <button id="setting">⚙️</button> Add setting popup that can verify email (google) or change password
-    find svg for button
--->

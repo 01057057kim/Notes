@@ -7,6 +7,7 @@ router.post('/signup', accountController.signUp);
 router.post('/signin', accountController.signIn);
 router.post('/signout', accountController.signOut);
 router.get('/getusername', accountController.getUsername);
+router.get('/getusernameverified', accountController.getUsernameVerified);
 router.get('/google', accountController.googleAuth);
 router.get('/google/callback', accountController.googleCallback);
 router.post('/verify', accountController.verifyEmail);

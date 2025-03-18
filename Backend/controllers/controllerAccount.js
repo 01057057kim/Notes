@@ -142,7 +142,9 @@ const signIn = async (req, res) => {
         }
         req.session.user = {
             username: existingAccount.username,
-            id: existingAccount._id
+            id: existingAccount._id,
+            email: existingAccount.email,
+            isVerified: existingAccount.isVerified
         }
         res.status(200).json({
             success: true,
@@ -293,7 +295,9 @@ const googleCallback = (req, res, next) => {
 
         req.session.user = {
             username: user.username,
-            id: user._id
+            id: user._id,
+            email: user.email,
+            isVerified: user.isVerified
         };
 
         return res.redirect('/app.html');
@@ -388,11 +392,46 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const getUsernameVerified = async (req, res) => {
+    try {
+        if (req.isAuthenticated && req.isAuthenticated()) {
+            return res.json({
+                success: true,
+                username: req.user.username,
+                isVerified: req.user.isVerified,
+                email: req.user.email,
+            });
+        }
+
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+
+        res.json({
+            success: true,
+            username: req.session.user.username,
+            isVerified: req.session.user.isVerified,
+            email: req.session.user.email,
+        });
+
+    } catch (err) {
+        console.error('Failed to get username', err);
+        res.status(500).json({
+            success: false,
+            message: 'error during get username'
+        });
+    }
+}
+
 module.exports = {
     signUp,
     signIn,
     signOut,
     getUsername,
+    getUsernameVerified,
     verifyEmail,
     resendVerificationCode,
     googleAuth,
