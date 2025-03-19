@@ -20,7 +20,7 @@ const connectDB = () => {
         categoryDB.on('error', (err) => console.error('Failed to connect to category database:', err));
         notesDB.on('error', (err) => console.error('Failed to connect to notes database:', err));
         imageDB.on('error', (err) => console.error('Failed to connect to image database:', err));
-        verifyDB.on('connected', () => console.log('Connected to verification database'));
+        verifyDB.on('error', (err) => console.error('Failed to connect to verification database', err));
     }
 
     return { accountDB, categoryDB, notesDB, imageDB, verifyDB};

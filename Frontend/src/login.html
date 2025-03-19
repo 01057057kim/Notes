@@ -25,13 +25,15 @@
                 <div class="container-password">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required minlength="6" maxlength="24">
-                    <a href="forgot-password.html" class="underlineFill">Forget Password?</a>
                 </div>
                 <div class="container-button">
                     <button type="submit">Sign In</button>
-                    <button id="register">Sign Up</button>
+                    <div class="div-href">
+                        <a href="forgot-password.html" class="underlineFill">Forget Password?</a>
+                        <a href="register.html" class="underlineFill">Sign Up</a>
+                    </div>
                 </div>
-                <span>----------- OR -----------</span>
+                <span>━━━━━━ OR ━━━━━━</span>
                 <div class="google">
                     <button id="google-login" class="login-with-google-btn">Login with Google</button>
                 </div>
@@ -41,10 +43,6 @@
 </body>
 <script src="notification.js"></script>
 <script>
-    document.getElementById('register').addEventListener('click', () => {
-        window.location.href = 'register.html';
-    });
-
     document.getElementById('signin-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         const username = document.getElementById('username').value;

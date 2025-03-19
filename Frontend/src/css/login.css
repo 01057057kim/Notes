@@ -135,7 +135,7 @@ form {
 
 .container-button {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 1rem;
@@ -149,6 +149,7 @@ form {
     font-weight: 600;
     border-radius: 3px;
     padding: 8px 18px;
+    width: 100%;
     border: 0;
     font-size: 16px;
     transition: all 0.3s ease;
@@ -169,7 +170,13 @@ form {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
+.container-button .div-href{
+    width: 100%;
+    margin-top: -15px;
+    display: flex;
+    justify-content: space-between;
+    align-self: start;
+}
 .google {
     width: 100%;
     display: flex;
@@ -179,7 +186,7 @@ form {
 
 .login-with-google-btn {
     transition: background-color .3s, box-shadow .3s;
-
+    width: 100%;
     padding: 12px 43px 12px 42px;
     border: none;
     border-radius: 3px;

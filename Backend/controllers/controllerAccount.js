@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const account = require('../models/account');
 const passport = require('passport');
 const verification = require('../models/verification');
+const Category = require('../models/category');
+const Notes = require('../models/notes');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../config/email');
 require('dotenv').config();
 
@@ -426,6 +428,98 @@ const getUsernameVerified = async (req, res) => {
     }
 }
 
+const deleteAccount = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        
+        const deletedCategories = await Category.deleteMany({ userId });
+        
+        const deletedNotes = await Notes.deleteMany({ userId });
+        
+        const deletedUser = await account.findByIdAndDelete(userId);
+        
+        if (!deletedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        req.session.destroy();
+        
+        console.log('Account Deleted:', deletedUser);
+        res.status(200).json({
+            success: true,
+            message: `Account deleted successfully along with ${deletedCategories.deletedCount} categories and ${deletedNotes.deletedCount} notes`
+        });
+    } catch (err) {
+        console.error('Delete account error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete account'
+        });
+    }
+};
+
+const changePassword = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.session.user.id;
+        
+        // Find the user account
+        const userAccount = await account.findById(userId);
+        
+        if (!userAccount) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, userAccount.password);
+        
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+        
+        // Hash the new password
+        const hashEncoded = parseInt(process.env.BCRYPT_ROUND);
+        const hash = await bcrypt.hash(newPassword, hashEncoded);
+        
+        // Update the password
+        await account.findByIdAndUpdate(userId, { password: hash });
+        
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (err) {
+        console.error('Change password error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to change password'
+        });
+    }
+};
+
 module.exports = {
     signUp,
     signIn,
@@ -437,5 +531,7 @@ module.exports = {
     googleAuth,
     googleCallback,
     requestPasswordReset,
-    resetPassword
+    resetPassword,
+    deleteAccount,
+    changePassword
 };

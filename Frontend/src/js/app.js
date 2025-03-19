@@ -173,7 +173,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
                 }
             }
         } else {
-            alert(data.message);
+            ntf(data.message, 'error');
         }
     } catch (error) {
         console.log('Error create category', error);
@@ -257,7 +257,7 @@ async function deleteCategory(id) {
             updateAddNotesButton();
             updateAddImageButton();
         } else {
-            alert('Failed to delete')
+            ntf('Failed to delete', 'error');
             console.log(err)
         }
     } catch (err) {
@@ -292,7 +292,7 @@ document.getElementById('globalAddNotesButton').addEventListener('click', async 
             getNotes(categoryId)
 
         } else {
-            alert('Failed to add note: ' + data.message);
+            ntf('Failed to add note: ' + data.message, 'error');
         }
     } catch (err) {
         console.error('Error:', err);
@@ -375,7 +375,7 @@ async function deleteNotes(noteId) {
         if (data.success) {
             getCategory();
         } else {
-            alert('Failed to delete')
+            ntf('Failed to delete','error')
             console.log(err)
         }
     } catch (err) {
@@ -517,7 +517,7 @@ document.getElementById('globalAddImageButton').addEventListener('click', async 
 async function uploadImage(file) {
     try {
         if (!selectedCategoryId) {
-            alert('Please select a category first');
+            ntf('Please select a category first','warning');
             return;
         }
 
@@ -559,7 +559,7 @@ async function uploadImage(file) {
 
     } catch (error) {
         console.error('Error uploading image:', error);
-        alert('Failed to upload image: ' + error.message);
+        ntf('Failed to upload image: ' + error.message, 'error');
     }
 }
 
@@ -728,7 +728,7 @@ function setupImageInteractions(imgContainer, imageId) {
                 console.log('Successfully updated image position');
             } else {
                 console.error('Failed to update image position:', data.message);
-                alert(`Failed to save position: ${data.message}`);
+                ntf(`Failed to save position: ${data.message}`, 'error');
             }
         } catch (err) {
             console.error('Update image position failed:', err);
@@ -882,26 +882,22 @@ async function getUsernameVerified() {
                 <div class="info">
                     <label>Username</label><br>
                     <label>Email</label><br>
+                    <label>Password</label><br>
                     <label>Verified</label><br>
                 </div>
                 <div class="data">
                     : <em><b>${data.username}</b></em><br>
                     : <em>${data.email || 'Not available'}</em><br>
-                    :<span class="${data.isVerified ? 'verified-badge' : 'unverified-badge'}">
+                    : <span class="password-field">
+                        <span>••••••••</span>
+                        <button id="changePassword" class="btn-small">Change</button>
+                      </span><br>
+                    : <span class="${data.isVerified ? 'verified-badge' : 'unverified-badge'}">
                         ${data.isVerified ? 'Yes' : 'No'}</span>
-                        <button id="verifyEmail" class="btn">Verify with Email</button>
                 </div>
             </div>`;
-            /*
-            if (!data.isVerified) {
-                document.getElementById('usernameVerified').innerHTML += `
-                <br><br>
-                <button id="verifyEmail" class="btn btn-primary">Verify with Email</button>
-                `;
-                document.getElementById('verifyEmail').addEventListener('click', function() {
-                    window.location.href = '/auth/google';
-                });
-            } */
+            
+            document.getElementById('changePassword').addEventListener('click', openChangePasswordForm);
         } else {
             console.error('Error fetching user data:', data.message);
             document.getElementById('usernameVerified').innerHTML = `Error: ${data.message}`;
@@ -911,6 +907,120 @@ async function getUsernameVerified() {
         document.getElementById('usernameVerified').innerHTML = `Error fetching user data`;
     }
 }
+
+function openChangePasswordForm() {
+    const originalContent = document.getElementById('usernameVerified').innerHTML;
+    const dialog = document.getElementById('dialog');
+    
+    dialog.querySelector('h2').textContent = 'Change Password';
+
+    document.getElementById('usernameVerified').innerHTML = `
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password:</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <button type="button" class="btn-secondary" id="cancelPasswordChange">Cancel</button>
+            </div>
+        </form>
+    `;
+
+    document.querySelector('.deleteAccount-btn').style.display = 'none';
+
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+            alert('New passwords do not match!');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/account/changepassword', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Password changed successfully!');
+                restoreDialog();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Change password error:', error);
+            alert('Failed to change password. Please try again.');
+        }
+    });
+
+    document.getElementById('cancelPasswordChange').addEventListener('click', restoreDialog);
+    
+    function restoreDialog() {
+        dialog.querySelector('h2').textContent = 'Setting';
+        document.getElementById('usernameVerified').innerHTML = originalContent;
+        document.querySelector('.deleteAccount-btn').style.display = 'block';
+        
+        setTimeout(() => {
+            const changePasswordBtn = document.getElementById('changePassword');
+            if (changePasswordBtn) {
+                changePasswordBtn.addEventListener('click', openChangePasswordForm);
+            }
+        }, 0);
+    }
+}
+
+document.getElementById('deleteAccount').addEventListener('click', async function () {
+    try {
+        const confirmation = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+
+        if (!confirmation) {
+            return;
+        }
+
+        const response = await fetch('/account/deleteaccount', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log(data.message);
+            window.location.href = 'login.html';
+        } else {
+            ntf(`Error: ${data.message}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        ntf('Failed to delete account. Please try again later.', 'error');
+    }
+    }
+);
 
 window.onload = function () {
     getUsernameVerified();

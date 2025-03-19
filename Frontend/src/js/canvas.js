@@ -349,7 +349,7 @@ function updateNotePositioning() {
                 console.log('Successfully updated image position');
             } else {
                 console.error('Failed to update image position:', data.message);
-                alert(`Failed to save position: ${data.message}`);
+                ntf(`Failed to save position: ${data.message}`,'error');
             }
         } catch (err) {
             console.error('Update image position failed:', err);
