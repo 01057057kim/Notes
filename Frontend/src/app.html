@@ -22,7 +22,7 @@
                 <div class="container-account-div">
                     <label class="container-account-label" id="usernameLabel"></label>
                     <div>
-                        <button id="setting" onclick="window.dialog.showModal();">⚙️</button>
+                        <button id="setting" onclick="window.dialog.showModal();">⚙️</button> <!-- // NEED MORE CSS -->
                         <button class="container-account-button signOut" id="signOut">⍈</button>
                     </div>
                 </div>
@@ -40,7 +40,7 @@
         </div>
         <button class="toggle-sidebar" id="toggleSidebar">↔︎</button>
         <!--
-        ? Voice to Text Notes
+        ? Voice to Text Notes  V
         ? AI summarization
         ? Todo List checkbox
         ? Reminder (setTimeout) or due Alaram
@@ -50,8 +50,8 @@
         ? Export to Image or PDF 
         ? Search all note for spesific word alt+f V
         -->
-        <button class="addImageButton" id="globalAddImageButton">+</button>
-        <button class="addNotesButton" id="globalAddNotesButton">+</button>
+        <button class="addImageButton" id="globalAddImageButton">+</button> <!-- // NEED MORE CSS -->
+        <button class="addNotesButton" id="globalAddNotesButton">+</button> <!-- // NEED MORE CSS -->
         <div class="notePosts" id="notePosts">
         </div>
     </div>
@@ -60,7 +60,7 @@
             <h2>Setting</h2>
             <label id="usernameVerified"></label>
             <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
-            <div class="deleteAccount-btn">
+            <div class="deleteAccount-btn"> <!-- // NEED MORE CSS -->
                 <button id="deleteAccount">Delete Account</button>
             </div>
         </dialog>
@@ -68,6 +68,8 @@
 </body>
 <script src="js/canvas.js"></script>
 <script src="js/app.js"></script>
+<script src="js/notification.js"></script>
+<script src="js/themes.js"></script>
 <script>
     document.getElementById('setting').addEventListener('click', function () {
         getUsernameVerified();

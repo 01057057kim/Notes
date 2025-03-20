@@ -317,7 +317,7 @@ async function getNotes(categoryId) {
             console.log('Error', data.message)
             return
         }
-
+        // no need
         data.notes.forEach(function (notes) {
             const notesElement = document.createElement('section')
             const positionStyle = notes.position ?
@@ -895,7 +895,7 @@ async function getUsernameVerified() {
                     : <span class="${data.isVerified ? 'verified-badge' : 'unverified-badge'}">
                         ${data.isVerified ? 'Yes' : 'No'}</span>
                 </div>
-            </div>`;
+            </div>`; // changePassword need css
             
             document.getElementById('changePassword').addEventListener('click', openChangePasswordForm);
         } else {
@@ -916,24 +916,24 @@ function openChangePasswordForm() {
 
     document.getElementById('usernameVerified').innerHTML = `
         <form id="changePasswordForm">
-            <div class="form-group">
-                <label for="currentPassword">Current Password:</label>
-                <input type="password" id="currentPassword" required>
-            </div>
-            <div class="form-group">
-                <label for="newPassword">New Password:</label>
-                <input type="password" id="newPassword" required>
-            </div>
-            <div class="form-group">
-                <label for="confirmPassword">Confirm New Password:</label>
-                <input type="password" id="confirmPassword" required>
+            <div class="newpassword-form">
+                <div class="form-group-one">
+                    <label for="currentPassword">Current Password</label><br>
+                    <label for="newPassword">New Password</label><br>
+                    <label for="confirmPassword">Confirm New Password</label>
+                </div>
+                <div class="form-group-two">
+                    : <input type="password" id="currentPassword" required><br>
+                    : <input type="password" id="newPassword" required><br>
+                    : <input type="password" id="confirmPassword" required>
+                </div>
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn-primary">Save Changes</button>
                 <button type="button" class="btn-secondary" id="cancelPasswordChange">Cancel</button>
             </div>
         </form>
-    `;
+    `; // NEED MORE CSS
 
     document.querySelector('.deleteAccount-btn').style.display = 'none';
 
@@ -993,7 +993,7 @@ function openChangePasswordForm() {
 
 document.getElementById('deleteAccount').addEventListener('click', async function () {
     try {
-        const confirmation = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+        const confirmation = confirm("Are you sure you want to delete your account? This action cannot be undone."); // need popup
 
         if (!confirmation) {
             return;

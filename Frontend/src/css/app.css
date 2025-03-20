@@ -641,7 +641,7 @@ dialog {
     left: 50%;
     transform: translate(-50%, -50%);
     margin: 0;
-    padding: 1rem 3rem;
+    padding: 1rem 2rem;
     background: white;
     min-width: 550px;
     min-height: 50vh;
@@ -794,4 +794,197 @@ dialog {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+#speech.recording {
+    background-color: #ff5252;
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.delete-speech{
+    display: flex;
+    justify-content: end;
+    gap: 5px;
+}
+
+.newpassword-form{
+    width: 400px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.form-group-one {
+    width: 50%;
+}
+
+.form-group-two{
+    width: 50%;
+}
+
+.form-buttons{
+    position: absolute;
+    bottom: 35px;
+    right: 50px;
+}
+
+.theme-selector {
+    position: absolute;
+    top: -20px;
+    right: -25px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    padding: 10px;
+    z-index: 1000;
+    display: none;
+    width: 220px;
+}
+
+.theme-selector {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+.theme-option:hover {
+    background-color: #f0f0f0;
+}
+
+.theme-color-preview {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-color-preview::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background-color: inherit;
+}
+
+.font-size-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.font-size-control button {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    color: black;
+}
+
+.font-size-control button:hover {
+    background: #f0f0f0;
+}
+
+.font-size-control span {
+    font-size: 12px;
+    color: #666;
+}
+
+.custom-font-selector, .color-picker {
+    width: 100%;
+    margin-top: 10px;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+
+.color-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.color-control span {
+    font-size: 12px;
+    color: #666;
+    margin-right: 10px;
+    width: 90px;
+}
+
+.color-input {
+    width: 100px;
+    height: 25px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.updateLiveTitle:hover, .updateLiveContent:hover {
+    transition: background-color 0.2s;
+}
+
+.theme-applied .updateLiveTitle, .theme-applied .updateLiveContent {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    overflow: auto;
+    word-wrap: break-word;
+}
+
+.theme-applied .updateLiveTitle:focus, .theme-applied .updateLiveContent:focus {
+    outline: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.updateLiveTitle:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.updateLiveContent:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-applied .updateLiveTitle:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-applied .updateLiveContent:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.updateLiveTitle, .updateLiveContent {
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    padding: 8px;
+    max-width: 100%;
+    overflow: auto;
 }
