@@ -41,12 +41,22 @@ const notesSchema = new mongoose.Schema({
             type: Number,
             default: 250
         },
+    },
+    theme: {
+        bgColor: String,
+        secondaryBgColor: String,
+        titleColor: String,
+        contentColor: String,
+        titleFont: String,
+        contentFont: String,
+        titleSize: String,
+        contentSize: String
     }
     },
     {timestamps : true}
 )
 
-notesSchema.index( {title: 1, content: 1, times: 1 , categoryId: 1, userId: 1, position: 1},{ unique: true})
+notesSchema.index( {title: 1, content: 1, times: 1 , categoryId: 1, userId: 1, position: 1, theme: 1},{ unique: true})
 
 const Notes = notesDB.model('Notes', notesSchema)
 module.exports = Notes 

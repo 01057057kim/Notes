@@ -212,6 +212,64 @@ const updateNotesPosition = async (req, res) => {
         });
     }
 };
+const updateNotesTheme = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+
+        const userId = req.session.user.id;
+        const { noteId, theme } = req.body;
+
+        if(!noteId){
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Notes ID"
+            });
+        }
+
+        const existingNote = await Notes.findOne({ _id: noteId, userId });
+        if (!existingNote) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        const updatedTheme = {
+            ...existingNote.theme || {}, 
+            ...theme
+        };
+
+        const updatedNote = await Notes.findOneAndUpdate(
+            { _id: noteId, userId },
+            { theme: updatedTheme },
+            { new: true }
+        );
+
+        if (!updatedNote) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Notes theme updated successfully',
+            data: updatedNote
+        });
+    } catch (err) {
+        console.error('Error updating Notes theme:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating Notes theme'
+        });
+    }
+};
 
 module.exports = {
     createNotes,
@@ -219,4 +277,5 @@ module.exports = {
     deleteNotes,
     updateNotes,
     updateNotesPosition,
+    updateNotesTheme
 }

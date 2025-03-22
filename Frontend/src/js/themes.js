@@ -10,7 +10,6 @@ function setupCustomThemes() {
         { name: 'Sleek', bgColor: '#FDB7EA', secondaryBgColor: '#FFDCCC', titleColor: '#222222', contentColor: '#444444', titleFont: 'Century Gothic', contentFont: 'Century Gothic', titleSize: '18px', contentSize: '15px' }
     ];
 
-
     document.addEventListener('click', function(event) {
         if (event.target && event.target.id === 'custom') {
             const noteSection = event.target.closest('.note-section');
@@ -41,9 +40,30 @@ function setupCustomThemes() {
         
         const titleTextarea = noteSection.querySelector('.updateLiveTitle');
         const contentTextarea = noteSection.querySelector('.updateLiveContent');
-        
         const noteId = titleTextarea.dataset.noteId;
-        const currentTheme = getNoteTheme(noteId) || themes[0];
+        
+        let currentTheme = themes[0];
+        
+        const loadedBgColor = noteSection.style.backgroundColor;
+        const loadedTitleColor = titleTextarea.style.color;
+        const loadedContentColor = contentTextarea.style.color;
+        const loadedTitleFont = titleTextarea.style.fontFamily;
+        const loadedContentFont = contentTextarea.style.fontFamily;
+        const loadedTitleSize = titleTextarea.style.fontSize;
+        const loadedContentSize = contentTextarea.style.fontSize;
+        
+        if (loadedBgColor) {
+            currentTheme = {
+                bgColor: rgbToHex(loadedBgColor) || '#ffffff',
+                secondaryBgColor: rgbToHex(titleTextarea.style.backgroundColor) || '#ffffff',
+                titleColor: rgbToHex(loadedTitleColor) || '#333333',
+                contentColor: rgbToHex(loadedContentColor) || '#555555',
+                titleFont: loadedTitleFont || 'Arial',
+                contentFont: loadedContentFont || 'Arial',
+                titleSize: loadedTitleSize || '18px',
+                contentSize: loadedContentSize || '15px'
+            };
+        }
         
         themes.forEach(theme => {
             const option = document.createElement('div');
@@ -62,136 +82,121 @@ function setupCustomThemes() {
             
             option.addEventListener('click', () => {
                 applyTheme(noteSection, theme);
-                saveNoteTheme(titleTextarea.dataset.noteId, theme);
+                saveThemeToDatabase(noteId, theme);
             });
             
             themeSelector.appendChild(option);
         });
         
-        const titleSizeControl = document.createElement('div');
-        titleSizeControl.className = 'font-size-control';
+        const titleSizeControl = createFontSizeControl('Title Size:', titleTextarea, noteId);
+        const contentSizeControl = createFontSizeControl('Content Size:', contentTextarea, noteId);
         
-        const titleLabel = document.createElement('span');
-        titleLabel.textContent = 'Title Size:';
+        const titleColorControl = createColorControl('Title Color:', titleTextarea, 'color', currentTheme.titleColor || '#333333', noteId);
+        const contentColorControl = createColorControl('Content Color:', contentTextarea, 'color', currentTheme.contentColor || '#555555', noteId);
+        const bgColorControl = createBgColorControl('Background:', noteSection, titleTextarea, contentTextarea, currentTheme.bgColor || '#ffffff', noteId);
         
-        const decreaseTitleBtn = document.createElement('button');
-        decreaseTitleBtn.textContent = '-';
-        decreaseTitleBtn.addEventListener('click', (e) => {
+        const fontSelector = createFontSelector(titleTextarea, contentTextarea, currentTheme.contentFont || 'Arial', noteId);
+        
+        themeSelector.appendChild(titleSizeControl);
+        themeSelector.appendChild(contentSizeControl);
+        themeSelector.appendChild(titleColorControl);
+        themeSelector.appendChild(contentColorControl);
+        themeSelector.appendChild(bgColorControl);
+        themeSelector.appendChild(fontSelector);
+        
+        noteSection.appendChild(themeSelector);
+        
+        setTimeout(() => {
+            themeSelector.style.display = 'block';
+        }, 10);
+    }
+
+    function createFontSizeControl(label, textarea, noteId) {
+        const sizeControl = document.createElement('div');
+        sizeControl.className = 'font-size-control';
+        
+        const labelElem = document.createElement('span');
+        labelElem.textContent = label;
+        
+        const decreaseBtn = document.createElement('button');
+        decreaseBtn.textContent = '-';
+        decreaseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            changeFontSize(titleTextarea, -1);
+            changeFontSize(textarea, -1);
+            saveStyleToDatabase(noteId, textarea, 'fontSize');
         });
         
-        const increaseTitleBtn = document.createElement('button');
-        increaseTitleBtn.textContent = '+';
-        increaseTitleBtn.addEventListener('click', (e) => {
+        const increaseBtn = document.createElement('button');
+        increaseBtn.textContent = '+';
+        increaseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            changeFontSize(titleTextarea, 1);
+            changeFontSize(textarea, 1);
+            saveStyleToDatabase(noteId, textarea, 'fontSize');
         });
         
-        titleSizeControl.appendChild(titleLabel);
-        titleSizeControl.appendChild(decreaseTitleBtn);
-        titleSizeControl.appendChild(increaseTitleBtn);
+        sizeControl.appendChild(labelElem);
+        sizeControl.appendChild(decreaseBtn);
+        sizeControl.appendChild(increaseBtn);
         
-        const contentSizeControl = document.createElement('div');
-        contentSizeControl.className = 'font-size-control';
+        return sizeControl;
+    }
+
+    function createColorControl(label, element, property, initialValue, noteId) {
+        const colorControl = document.createElement('div');
+        colorControl.className = 'color-control';
         
-        const contentLabel = document.createElement('span');
-        contentLabel.textContent = 'Content Size:';
+        const colorLabel = document.createElement('span');
+        colorLabel.textContent = label;
         
-        const decreaseContentBtn = document.createElement('button');
-        decreaseContentBtn.textContent = '-';
-        decreaseContentBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            changeFontSize(contentTextarea, -1);
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'color-input';
+        colorInput.value = initialValue;
+        
+        colorInput.addEventListener('input', (e) => {
+            element.style[property] = e.target.value;
+            saveStyleToDatabase(noteId, element, property);
         });
         
-        const increaseContentBtn = document.createElement('button');
-        increaseContentBtn.textContent = '+';
-        increaseContentBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            changeFontSize(contentTextarea, 1);
-        });
+        colorControl.appendChild(colorLabel);
+        colorControl.appendChild(colorInput);
         
-        contentSizeControl.appendChild(contentLabel);
-        contentSizeControl.appendChild(decreaseContentBtn);
-        contentSizeControl.appendChild(increaseContentBtn);
-        
-        const titleColorControl = document.createElement('div');
-        titleColorControl.className = 'color-control';
-        
-        const titleColorLabel = document.createElement('span');
-        titleColorLabel.textContent = 'Title Color:';
-        
-        const titleColorInput = document.createElement('input');
-        titleColorInput.type = 'color';
-        titleColorInput.className = 'color-input';
-        titleColorInput.value = currentTheme.titleColor || '#333333';
-        
-        titleColorInput.addEventListener('input', (e) => {
-            titleTextarea.style.color = e.target.value;
-            
-            const noteId = titleTextarea.dataset.noteId;
-            const currentTheme = getNoteTheme(noteId) || themes[0];
-            currentTheme.titleColor = e.target.value;
-            saveNoteTheme(noteId, currentTheme);
-        });
-        
-        titleColorControl.appendChild(titleColorLabel);
-        titleColorControl.appendChild(titleColorInput);
-        
-        const contentColorControl = document.createElement('div');
-        contentColorControl.className = 'color-control';
-        
-        const contentColorLabel = document.createElement('span');
-        contentColorLabel.textContent = 'Content Color:';
-        
-        const contentColorInput = document.createElement('input');
-        contentColorInput.type = 'color';
-        contentColorInput.className = 'color-input';
-        contentColorInput.value = currentTheme.contentColor || '#555555';
-        
-        contentColorInput.addEventListener('input', (e) => {
-            contentTextarea.style.color = e.target.value;
-            
-            const noteId = titleTextarea.dataset.noteId;
-            const currentTheme = getNoteTheme(noteId) || themes[0];
-            currentTheme.contentColor = e.target.value;
-            saveNoteTheme(noteId, currentTheme);
-        });
-        
-        contentColorControl.appendChild(contentColorLabel);
-        contentColorControl.appendChild(contentColorInput);
-        
+        return colorControl;
+    }
+
+    function createBgColorControl(label, noteSection, titleEl, contentEl, initialValue, noteId) {
         const bgColorControl = document.createElement('div');
         bgColorControl.className = 'color-control';
         
         const bgColorLabel = document.createElement('span');
-        bgColorLabel.textContent = 'Background:';
+        bgColorLabel.textContent = label;
         
         const bgColorInput = document.createElement('input');
         bgColorInput.type = 'color';
         bgColorInput.className = 'color-input';
-        bgColorInput.value = currentTheme.bgColor || '#ffffff';
+        bgColorInput.value = initialValue;
         
         bgColorInput.addEventListener('input', (e) => {
             noteSection.style.backgroundColor = e.target.value;
-            
-            const noteId = titleTextarea.dataset.noteId;
-            const currentTheme = getNoteTheme(noteId) || themes[0];
-            currentTheme.bgColor = e.target.value;
-            
             const secondaryColor = lightenColor(e.target.value, 15);
-            currentTheme.secondaryBgColor = secondaryColor;
+            titleEl.style.backgroundColor = secondaryColor;
+            contentEl.style.backgroundColor = secondaryColor;
             
-            titleTextarea.style.backgroundColor = secondaryColor;
-            contentTextarea.style.backgroundColor = secondaryColor;
+            const theme = {
+                bgColor: e.target.value,
+                secondaryBgColor: secondaryColor
+            };
             
-            saveNoteTheme(noteId, currentTheme);
+            saveThemeToDatabase(noteId, theme);
         });
         
         bgColorControl.appendChild(bgColorLabel);
         bgColorControl.appendChild(bgColorInput);
         
+        return bgColorControl;
+    }
+
+    function createFontSelector(titleEl, contentEl, initialValue, noteId) {
         const fontSelector = document.createElement('select');
         fontSelector.className = 'custom-font-selector';
         
@@ -213,34 +218,58 @@ function setupCustomThemes() {
         });
         
         fontSelector.appendChild(fontOptGroup);
-        fontSelector.value = currentTheme.contentFont || 'Arial';
+        fontSelector.value = initialValue;
         
         fontSelector.addEventListener('change', (e) => {
             const selectedFont = e.target.value;
-            titleTextarea.style.fontFamily = selectedFont;
-            contentTextarea.style.fontFamily = selectedFont;
+            titleEl.style.fontFamily = selectedFont;
+            contentEl.style.fontFamily = selectedFont;
             
-            const noteId = titleTextarea.dataset.noteId;
-            const currentTheme = getNoteTheme(noteId) || themes[0];
-            currentTheme.titleFont = selectedFont;
-            currentTheme.contentFont = selectedFont;
-            saveNoteTheme(noteId, currentTheme);
+            saveThemeToDatabase(noteId, {
+                titleFont: selectedFont,
+                contentFont: selectedFont
+            });
         });
         
-        themeSelector.appendChild(titleSizeControl);
-        themeSelector.appendChild(contentSizeControl);
-        themeSelector.appendChild(titleColorControl);
-        themeSelector.appendChild(contentColorControl);
-        themeSelector.appendChild(bgColorControl);
-        themeSelector.appendChild(fontSelector);
-        
-        noteSection.appendChild(themeSelector);
-        
-        setTimeout(() => {
-            themeSelector.style.display = 'block';
-        }, 10);
+        return fontSelector;
     }
-     // Darken
+
+    function saveStyleToDatabase(noteId, element, property) {
+        const theme = {};
+        
+        if (element.classList.contains('updateLiveTitle')) {
+            if (property === 'color') theme.titleColor = element.style[property];
+            if (property === 'fontSize') theme.titleSize = element.style[property];
+            if (property === 'fontFamily') theme.titleFont = element.style[property];
+        } else if (element.classList.contains('updateLiveContent')) {
+            if (property === 'color') theme.contentColor = element.style[property];
+            if (property === 'fontSize') theme.contentSize = element.style[property];
+            if (property === 'fontFamily') theme.contentFont = element.style[property];
+        }
+        
+        saveThemeToDatabase(noteId, theme);
+    }
+
+    async function saveThemeToDatabase(noteId, theme) {
+        try {
+            const response = await fetch('/notes/updatenotestheme', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ noteId, theme })
+            });
+    
+            const data = await response.json();
+            if (data.success) {
+                console.log('Successfully updated note theme');
+            } else {
+                console.error('Failed to update theme:', data.message);
+            }
+        } catch (err) {
+            console.error('Theme update failed:', err);
+        }
+    }
+
     function darkenColor(color, percent) {
         let r = parseInt(color.substring(1, 3), 16);
         let g = parseInt(color.substring(3, 5), 16);
@@ -252,7 +281,7 @@ function setupCustomThemes() {
         
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
-    // Lighten
+
     function lightenColor(color, percent) {
         let r = parseInt(color.substring(1, 3), 16);
         let g = parseInt(color.substring(3, 5), 16);
@@ -264,9 +293,25 @@ function setupCustomThemes() {
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
 
+    function rgbToHex(rgbStr) {
+        if (!rgbStr) return null;
+        
+        if (rgbStr.startsWith('#')) return rgbStr;
+        
+        const rgbMatch = rgbStr.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+        if (!rgbMatch) return null;
+        
+        const r = parseInt(rgbMatch[1]);
+        const g = parseInt(rgbMatch[2]);
+        const b = parseInt(rgbMatch[3]);
+        
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+
     function applyTheme(noteSection, theme) {
         const titleTextarea = noteSection.querySelector('.updateLiveTitle');
         const contentTextarea = noteSection.querySelector('.updateLiveContent');
+        const noteId = titleTextarea.dataset.noteId;
         
         noteSection.classList.add('theme-applied');
         noteSection.style.backgroundColor = theme.bgColor;
@@ -277,7 +322,6 @@ function setupCustomThemes() {
         titleTextarea.style.backgroundColor = theme.secondaryBgColor;
         contentTextarea.style.backgroundColor = theme.secondaryBgColor;
         
-
         titleTextarea.style.fontFamily = theme.titleFont;
         contentTextarea.style.fontFamily = theme.contentFont;
         
@@ -303,77 +347,21 @@ function setupCustomThemes() {
         if (bgColorInput) {
             bgColorInput.value = theme.bgColor;
         }
+        
+        saveThemeToDatabase(noteId, theme);
     }
 
     function changeFontSize(textarea, delta) {
         const currentSize = parseInt(window.getComputedStyle(textarea).fontSize) || 14;
         const newSize = Math.max(10, Math.min(24, currentSize + delta));
         textarea.style.fontSize = `${newSize}px`;
-        
-        const noteId = textarea.dataset.noteId;
-        const currentTheme = getNoteTheme(noteId) || themes[0];
-        
-        if (textarea.classList.contains('updateLiveTitle')) {
-            currentTheme.titleSize = `${newSize}px`;
-        } else if (textarea.classList.contains('updateLiveContent')) {
-            currentTheme.contentSize = `${newSize}px`;
-        }
-        
-        saveNoteTheme(noteId, currentTheme);
     }
-    
-    // need cahnge to databse
-    function saveNoteTheme(noteId, theme) {
-        const noteThemes = JSON.parse(localStorage.getItem('noteThemes') || '{}');
-        noteThemes[noteId] = theme;
-        localStorage.setItem('noteThemes', JSON.stringify(noteThemes));
-    }
-
-    function getNoteTheme(noteId) {
-        const noteThemes = JSON.parse(localStorage.getItem('noteThemes') || '{}');
-        return noteThemes[noteId];
-    }
-
-    function applyThemesToExistingNotes() {
-        const noteSections = document.querySelectorAll('.note-section');
-        noteSections.forEach(noteSection => {
-            const titleTextarea = noteSection.querySelector('.updateLiveTitle');
-            if (titleTextarea) {
-                const noteId = titleTextarea.dataset.noteId;
-                const savedTheme = getNoteTheme(noteId);
-                if (savedTheme) {
-                    applyTheme(noteSection, savedTheme);
-                }
-            }
-        });
-    }
-
-    const originalGetNotes = window.getNotes;
-    window.getNotes = async function(categoryId) {
-        await originalGetNotes(categoryId);
-        setTimeout(applyThemesToExistingNotes, 100);
-    };
-
-    setTimeout(applyThemesToExistingNotes, 500);
-
-    const originalAddNote = window.addNote;
-    window.addNote = async function(categoryId) {
-        await originalAddNote(categoryId);
-        setTimeout(() => {
-            const newNotes = document.querySelectorAll('.note-section');
-            newNotes.forEach(noteSection => {
-                const titleTextarea = noteSection.querySelector('.updateLiveTitle');
-                if (titleTextarea && !titleTextarea.style.fontFamily) {
-                    applyTheme(noteSection, themes[0]);
-                }
-            });
-        }, 300);
-    };
 }
+
 
 document.addEventListener('DOMContentLoaded', function () {
     setupCustomThemes();
-})
+});
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setupCustomThemes();

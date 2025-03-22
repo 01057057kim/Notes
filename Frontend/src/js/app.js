@@ -559,7 +559,7 @@ async function uploadImage(file) {
 
     } catch (error) {
         console.error('Error uploading image:', error);
-        ntf('Failed to upload image: ' + error.message, 'error');
+        ntf('File too large Max 5 MB' , 'error');
     }
 }
 

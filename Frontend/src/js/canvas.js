@@ -445,7 +445,24 @@ function adjustNotesAndImagesPositioning() {
 
                     const titleTextarea = notesElement.querySelector('.updateLiveTitle');
                     const contentTextarea = notesElement.querySelector('.updateLiveContent');
+                    const noteSection = notesElement.querySelector('.note-section');
 
+                    if (notes.theme) {
+                        noteSection.style.backgroundColor = notes.theme.bgColor || '';
+                        
+                        titleTextarea.style.color = notes.theme.titleColor || '';
+                        titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        titleTextarea.style.fontFamily = notes.theme.titleFont || '';
+                        titleTextarea.style.fontSize = notes.theme.titleSize || '';
+                        
+                        contentTextarea.style.color = notes.theme.contentColor || '';
+                        contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        contentTextarea.style.fontFamily = notes.theme.contentFont || '';
+                        contentTextarea.style.fontSize = notes.theme.contentSize || '';
+                        
+                        noteSection.classList.add('theme-applied');
+                    }
+                    
                     titleTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
@@ -740,7 +757,6 @@ function updateMinimap() {
         fragment.appendChild(imgIndicator);
     });
 
-    // Append all indicators at once to minimize reflows
     minimap.appendChild(fragment);
 }
 
@@ -1257,6 +1273,4 @@ document.addEventListener('DOMContentLoaded', function () {
     initInfinityCanvas();
     setupSpeechRecognition();
 });
-
-
 /////////////////////////////////////////////////////////////////////////////////
