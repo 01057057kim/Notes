@@ -14,6 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/interactjs"></script>
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
+
 <body>
     <div class="canvas-container">
         <div class="container">
@@ -22,8 +23,34 @@
                 <div class="container-account-div">
                     <label class="container-account-label" id="usernameLabel"></label>
                     <div>
-                        <button id="setting" onclick="window.dialog.showModal();">⚙️</button> <!-- // NEED MORE CSS -->
-                        <button class="container-account-button signOut" id="signOut">⍈</button>
+                        <button id="setting" class="setting" onclick="window.dialog.showModal();">
+                            <svg width="25px" height="25px" viewBox="-0.5 0 25 25" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11.99 18C15.0276 18 17.49 15.5376 17.49 12.5C17.49 9.46243 15.0276 7 11.99 7C8.95242 7 6.48999 9.46243 6.48999 12.5C6.48999 15.5376 8.95242 18 11.99 18Z"
+                                    stroke="#0F0F0F" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M13.2 4.2L14.28 3C15.69 3.58 15.69 3.58 17.1 4.17L17.02 5.78C16.97 6.74 17.76 7.53 18.72 7.48L20.33 7.4C20.91 8.81 20.91 8.81 21.5 10.22L20.3 11.3C19.59 11.94 19.59 13.06 20.3 13.7L21.5 14.78C20.92 16.19 20.92 16.19 20.33 17.6L18.72 17.52C17.76 17.47 16.97 18.26 17.02 19.22L17.1 20.83C15.69 21.41 15.69 21.41 14.28 22L13.2 20.8C12.56 20.09 11.44 20.09 10.8 20.8L9.72 22C8.31 21.42 8.30999 21.42 6.89999 20.83L6.98 19.22C7.03 18.26 6.24 17.47 5.28 17.52L3.67 17.6C3.09 16.19 3.09 16.19 2.5 14.78L3.7 13.7C4.41 13.06 4.41 11.94 3.7 11.3L2.5 10.22C3.08 8.81 3.08 8.81 3.67 7.4L5.28 7.48C6.24 7.53 7.03 6.74 6.98 5.78L6.89999 4.17C8.30999 3.59 8.31 3.59 9.72 3L10.8 4.2C11.44 4.91 12.55 4.91 13.2 4.2Z"
+                                    stroke="#0F0F0F" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button> <!-- // NEED MORE CSS -->
+                        <button class="container-account-button signOut" id="signOut">
+                            <svg width="25px" height="25px" viewBox="-0.5 0 25 25" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M15.7037 16.43L19.2137 12.71C19.3237 12.59 19.3237 12.41 19.2137 12.29L15.7037 8.56"
+                                    stroke="#0F0F0F" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M16.2937 12.5H8.2937" stroke="#0F0F0F" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path
+                                    d="M17.7037 18.43V21.5C17.7037 21.78 17.4837 22 17.2037 22H5.20374C4.92374 22 4.70374 21.78 4.70374 21.5V3.5C4.70374 3.22 4.92374 3 5.20374 3H17.2037C17.4837 3 17.7037 3.22 17.7037 3.5V6.56999"
+                                    stroke="#0F0F0F" stroke-miterlimit="10" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -50,8 +77,86 @@
         ? Export to Image or PDF 
         ? Search all note for spesific word alt+f V
         -->
-        <button class="addImageButton" id="globalAddImageButton">+</button> <!-- // NEED MORE CSS -->
-        <button class="addNotesButton" id="globalAddNotesButton">+</button> <!-- // NEED MORE CSS -->
+        <div class="tool">
+            <div class="tool-container">
+                <button class="addNotesButton" id="globalAddNotesButton"> <!-- Adding Notes (heading + content) -->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="File / Note_Edit">
+                            <path id="Vector"
+                                d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="addImageButton" id="globalAddImageButton"> <!-- Adding Image -->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Media / Image_02">
+                            <path id="Vector"
+                                d="M3.00005 18.0001C3 17.9355 3 17.8689 3 17.8002V6.2002C3 5.08009 3 4.51962 3.21799 4.0918C3.40973 3.71547 3.71547 3.40973 4.0918 3.21799C4.51962 3 5.08009 3 6.2002 3H17.8002C18.9203 3 19.4801 3 19.9079 3.21799C20.2842 3.40973 20.5905 3.71547 20.7822 4.0918C21 4.5192 21 5.07899 21 6.19691V17.8031C21 18.2881 21 18.6679 20.9822 18.9774M3.00005 18.0001C3.00082 18.9884 3.01337 19.5058 3.21799 19.9074C3.40973 20.2837 3.71547 20.5905 4.0918 20.7822C4.5192 21 5.07899 21 6.19691 21H17.8036C18.9215 21 19.4805 21 19.9079 20.7822C20.2842 20.5905 20.5905 20.2837 20.7822 19.9074C20.9055 19.6654 20.959 19.3813 20.9822 18.9774M3.00005 18.0001L7.76798 12.4375L7.76939 12.436C8.19227 11.9426 8.40406 11.6955 8.65527 11.6064C8.87594 11.5282 9.11686 11.53 9.33643 11.6113C9.58664 11.704 9.79506 11.9539 10.2119 12.4541L12.8831 15.6595C13.269 16.1226 13.463 16.3554 13.6986 16.4489C13.9065 16.5313 14.1357 16.5406 14.3501 16.4773C14.5942 16.4053 14.8091 16.1904 15.2388 15.7607L15.7358 15.2637C16.1733 14.8262 16.3921 14.6076 16.6397 14.5361C16.8571 14.4734 17.0896 14.4869 17.2988 14.5732C17.537 14.6716 17.7302 14.9124 18.1167 15.3955L20.9822 18.9774M20.9822 18.9774L21 18.9996M15 9C14.4477 9 14 8.55228 14 8C14 7.44772 14.4477 7 15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9Z"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button> 
+                <button class="todolist" id="todolist"> <!-- NO FUNCTION Todolist-->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Edit / List_Checklist">
+                            <path id="Vector"
+                                d="M11 17H20M8 15L5.5 18L4 17M11 12H20M8 10L5.5 13L4 12M11 7H20M8 5L5.5 8L4 7"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="link" id="link"> <!-- NO FUNCTION link -->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Interface / Link">
+                            <path id="Vector"
+                                d="M9.1718 14.8288L14.8287 9.17192M7.05086 11.293L5.63664 12.7072C4.07455 14.2693 4.07409 16.8022 5.63619 18.3643C7.19829 19.9264 9.7317 19.9259 11.2938 18.3638L12.7065 16.9498M11.2929 7.05L12.7071 5.63579C14.2692 4.07369 16.8016 4.07397 18.3637 5.63607C19.9258 7.19816 19.9257 9.73085 18.3636 11.2929L16.9501 12.7071"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="table" id="table"> <!-- NO FUNCTION Table-->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Edit / Table_Add">
+                            <path id="Vector"
+                                d="M11 4H15.8002C16.9203 4 17.4801 4 17.9079 4.21799C18.2842 4.40973 18.5905 4.71547 18.7822 5.0918C19 5.5192 19 6.07899 19 7.19691V9.0002L11.0001 9.0001M11 4H6.2002C5.08009 4 4.51962 4 4.0918 4.21799C3.71547 4.40973 3.40973 4.71547 3.21799 5.0918C3 5.51962 3 6.08009 3 7.2002V9M11 4L11.0001 9.0001M3 9V15M3 9L11.0001 9.0001M3 15V16.8002C3 17.9203 3 18.4801 3.21799 18.9079C3.40973 19.2842 3.71547 19.5905 4.0918 19.7822C4.5192 20 5.07899 20 6.19691 20H11.0002L11.0001 9.0001M3 15H11M15 16H18M18 16H21M18 16V19M18 16V13"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="code" id="code"> <!-- NO FUNCTION Code Snippets-->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="System / Window_Code_Block">
+                            <path id="Vector"
+                                d="M3 6H3.01919M3.01919 6H20.9809M3.01919 6C3 6.31438 3 6.70191 3 7.2002V16.8002C3 17.9203 3 18.4796 3.21799 18.9074C3.40973 19.2837 3.71547 19.5905 4.0918 19.7822C4.51921 20 5.079 20 6.19694 20L17.8031 20C18.921 20 19.48 20 19.9074 19.7822C20.2837 19.5905 20.5905 19.2837 20.7822 18.9074C21 18.48 21 17.921 21 16.8031L21 7.19691C21 6.70021 21 6.31368 20.9809 6M3.01919 6C3.04314 5.60768 3.09697 5.3293 3.21799 5.0918C3.40973 4.71547 3.71547 4.40973 4.0918 4.21799C4.51962 4 5.08009 4 6.2002 4H17.8002C18.9203 4 19.4796 4 19.9074 4.21799C20.2837 4.40973 20.5905 4.71547 20.7822 5.0918C20.9032 5.3293 20.957 5.60768 20.9809 6M20.9809 6H21M14 11L16 13L14 15M10 15L8 13L10 11"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="draw" id="draw"> <!-- NO FUNCTION Drawing-->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Edit / Edit_Pencil_Line_01">
+                        <path id="Vector" d="M4 20.0001H20M4 20.0001V16.0001L12 8.00012M4 20.0001L8 20.0001L16 12.0001M12 8.00012L14.8686 5.13146L14.8704 5.12976C15.2652 4.73488 15.463 4.53709 15.691 4.46301C15.8919 4.39775 16.1082 4.39775 16.3091 4.46301C16.5369 4.53704 16.7345 4.7346 17.1288 5.12892L18.8686 6.86872C19.2646 7.26474 19.4627 7.46284 19.5369 7.69117C19.6022 7.89201 19.6021 8.10835 19.5369 8.3092C19.4628 8.53736 19.265 8.73516 18.8695 9.13061L18.8686 9.13146L16 12.0001M12 8.00012L16 12.0001" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                        </svg>
+                </button>
+                <button class="arrow" id="arrow"> <!-- NO FUNCTION Arrow Line -->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Arrow / Arrow_Left_Right">
+                        <path id="Vector" d="M16 13L19 16M19 16L16 19M19 16H5M8 11L5 8M5 8L8 5M5 8H19" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                        </svg>
+                </button>
+                <button class="pdf" id="pdf"> <!-- NO FUNCTION Import pdf or docs -->
+                    <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="File / File_Document">
+                        <path id="Vector" d="M9 17H15M9 14H15M13.0004 3.00087C12.9048 3 12.7974 3 12.6747 3H8.2002C7.08009 3 6.51962 3 6.0918 3.21799C5.71547 3.40973 5.40973 3.71547 5.21799 4.0918C5 4.51962 5 5.08009 5 6.2002V17.8002C5 18.9203 5 19.4801 5.21799 19.9079C5.40973 20.2842 5.71547 20.5905 6.0918 20.7822C6.51921 21 7.079 21 8.19694 21L15.8031 21C16.921 21 17.48 21 17.9074 20.7822C18.2837 20.5905 18.5905 20.2842 18.7822 19.9079C19 19.4805 19 18.9215 19 17.8036V9.32568C19 9.20302 18.9999 9.09553 18.999 9M13.0004 3.00087C13.2858 3.00348 13.4657 3.01407 13.6382 3.05547C13.8423 3.10446 14.0379 3.18526 14.2168 3.29492C14.4186 3.41857 14.5918 3.59181 14.9375 3.9375L18.063 7.06298C18.4089 7.40889 18.5809 7.58136 18.7046 7.78319C18.8142 7.96214 18.8953 8.15726 18.9443 8.36133C18.9857 8.53379 18.9964 8.71454 18.999 9M13.0004 3.00087L13 5.80021C13 6.92031 13 7.48015 13.218 7.90797C13.4097 8.2843 13.7155 8.59048 14.0918 8.78223C14.5192 9 15.079 9 16.1969 9H18.999" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                        </svg>
+                </button>
+            </div>
+        </div>
+        <button class="tool-toggle-sidebar" id="toolToggleSidebar"></button>
         <div class="notePosts" id="notePosts">
         </div>
     </div>

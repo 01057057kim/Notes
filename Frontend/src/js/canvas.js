@@ -13,20 +13,43 @@ let minimapUpdateTimeout = null;
 let minimapVisible = true;
 let sidebarVisible = true;
 let searchVisible = true;
+let toolSidebarVisible = true;
 const toggleButton = document.getElementById('toggleSidebar');
 const sidebar = document.querySelector('.container');
-
+const toolSidebar = document.querySelector('.tool');
+const toolToggleBtn = document.getElementById('toolToggleSidebar');
 
 toggleButton.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
     sidebarVisible = !sidebar.classList.contains('collapsed');
+
+    if (sidebarVisible) {
+        toggleButton.innerHTML = '←';
+    } else {
+        toggleButton.innerHTML = '→';
+    }
 
     minimap.style.transition = 'transform 0.3s ease';
     zoomControls.style.transition = 'transform 0.3s ease';
 
     updateControlPositions();
 });
+toggleButton.innerHTML = '←';
+toolToggleBtn.addEventListener('click', () => {
+    toolSidebar.classList.toggle('hidden');
+    toolSidebarVisible = !toolSidebar.classList.contains('hidden');
 
+    if (toolSidebarVisible) {
+        toolToggleBtn.innerHTML = '→';
+    } else {
+        toolToggleBtn.innerHTML = '←';
+    }
+
+    toolSidebar.style.transition = 'transform 0.3s ease';
+
+    updateToolSidebarPosition();
+});
+toolToggleBtn.innerHTML = '→';
 function updateControlPositions() {
     if (minimapVisible) {
         minimap.style.transform = sidebarVisible ? 'translateX(0)' : 'translateX(-300px)';
@@ -349,7 +372,7 @@ function updateNotePositioning() {
                 console.log('Successfully updated image position');
             } else {
                 console.error('Failed to update image position:', data.message);
-                ntf(`Failed to save position: ${data.message}`,'error');
+                ntf(`Failed to save position: ${data.message}`, 'error');
             }
         } catch (err) {
             console.error('Update image position failed:', err);
@@ -449,20 +472,20 @@ function adjustNotesAndImagesPositioning() {
 
                     if (notes.theme) {
                         noteSection.style.backgroundColor = notes.theme.bgColor || '';
-                        
+
                         titleTextarea.style.color = notes.theme.titleColor || '';
                         titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
                         titleTextarea.style.fontFamily = notes.theme.titleFont || '';
                         titleTextarea.style.fontSize = notes.theme.titleSize || '';
-                        
+
                         contentTextarea.style.color = notes.theme.contentColor || '';
                         contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
                         contentTextarea.style.fontFamily = notes.theme.contentFont || '';
                         contentTextarea.style.fontSize = notes.theme.contentSize || '';
-                        
+
                         noteSection.classList.add('theme-applied');
                     }
-                    
+
                     titleTextarea.addEventListener('input', (event) => {
                         const newValue = event.target.value;
                         const noteId = event.target.dataset.noteId;
@@ -668,8 +691,8 @@ function addMinimap() {
         const ratioX = canvasWidth / minimapContent.offsetWidth;
         const ratioY = canvasHeight / minimapContent.offsetHeight;
 
-        let targetX = clickX * ratioX - (viewportWidth / 2) * zoomLevel;
-        let targetY = clickY * ratioY - (viewportHeight / 2) * zoomLevel;
+        let targetX = clickX * ratioX * zoomLevel - (viewportWidth / 2);
+        let targetY = clickY * ratioY * zoomLevel - (viewportHeight / 2);
 
         const maxScrollX = Math.max(0, canvasWidth * zoomLevel - viewportWidth);
         const maxScrollY = Math.max(0, canvasHeight * zoomLevel - viewportHeight);
@@ -695,7 +718,7 @@ function updateMinimap() {
 
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
-    
+
     while (minimap.querySelector('.minimap-note-indicator')) {
         minimap.querySelector('.minimap-note-indicator').remove();
     }
@@ -718,7 +741,7 @@ function updateMinimap() {
     indicator.style.height = viewportH + 'px';
 
     const fragment = document.createDocumentFragment();
-    
+
     notes.forEach(note => {
         const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
@@ -823,6 +846,7 @@ function addSearchFeature() {
     searchAllCheckbox.checked = true;
     searchAllCheckbox.style.position = 'fixed';
     searchAllCheckbox.style.right = '115px';
+    searchAllCheckbox.style.display = 'none';
     searchContainer.appendChild(searchAllCheckbox);
 
     const resultsContainer = document.createElement('div');
@@ -1174,7 +1198,7 @@ function setupSpeechRecognition() {
         ntf('Speech recognition is not supported in your browser.', 'error');
         return;
     }
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
         if (event.target && event.target.id === 'speech') {
             const noteSection = event.target.closest('.note-section');
             if (noteSection) {
@@ -1191,7 +1215,7 @@ const recognitionInstances = {};
 
 function toggleSpeechRecognition(contentTextarea, button) {
     const noteId = contentTextarea.getAttribute('data-note-id');
-    
+
     if (recognitionInstances[noteId]) {
         recognitionInstances[noteId].stop();
         recognitionInstances[noteId] = null;
@@ -1199,33 +1223,33 @@ function toggleSpeechRecognition(contentTextarea, button) {
         button.classList.remove('recording');
         return;
     }
-    
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         ntf('Speech recognition is not supported in your browser.', 'error');
         return;
     }
-    
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-    
+
     let finalTranscript = contentTextarea.value || '';
     let cursorPosition = contentTextarea.selectionStart;
-    
+
     button.textContent = 'Stop';
     button.classList.add('recording');
-    
+
     recognitionInstances[noteId] = recognition;
-    
-    recognition.onresult = function(event) {
+
+    recognition.onresult = function (event) {
         let interimTranscript = '';
-        
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
-            
+
             if (event.results[i].isFinal) {
                 finalTranscript += ' ' + transcript;
                 updateNotesContent(noteId, finalTranscript);
@@ -1233,15 +1257,15 @@ function toggleSpeechRecognition(contentTextarea, button) {
                 interimTranscript += transcript;
             }
         }
-        
+
         const content = finalTranscript + interimTranscript;
         contentTextarea.value = content;
-        
+
         contentTextarea.selectionStart = content.length;
         contentTextarea.selectionEnd = content.length;
     };
-    
-    recognition.onerror = function(event) {
+
+    recognition.onerror = function (event) {
         if (event.error === 'no-speech') {
             ntf('No speech was detected. Please try again.', 'info');
         } else {
@@ -1252,13 +1276,13 @@ function toggleSpeechRecognition(contentTextarea, button) {
         button.classList.remove('recording');
         recognitionInstances[noteId] = null;
     };
-    
-    recognition.onend = function() {
+
+    recognition.onend = function () {
         button.textContent = 'Speech';
         button.classList.remove('recording');
         recognitionInstances[noteId] = null;
     };
-    
+
     try {
         recognition.start();
     } catch (error) {

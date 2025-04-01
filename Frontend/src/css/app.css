@@ -103,21 +103,6 @@ body {
     color: var(--text-color);
 }
 
-.container-account-button {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s ease;
-}
-
-.container-account-button:hover {
-    background-color: #FF4757;
-}
-
 .container-category-labbut {
     display: flex;
     justify-content: space-between;
@@ -202,51 +187,62 @@ body {
     position: relative;
 }
 
-.addNotesButton {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    padding: 10px 35px;
-    border-radius: 100%;
-    background: var(--gradient-primary);
-    font-size: 64px;
-    color: white;
-    border: none;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(93, 63, 211, 0.3);
+
+.addNotesButton,
+.addImageButton,
+.todolist,
+.link,
+.table,
+.code,
+.draw,
+.arrow,
+.pdf {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font: inherit;
+    background-color: #f0f0f0;
+    border: 0;
+    color: #242424;
+    border-radius: 0.5em;
+    min-width: 80px;
+    min-height: 80px;
+    box-shadow: inset 0 0.0625em 0 0 #f4f4f4, 0 0.0625em 0 0 #efefef,
+        0 0.125em 0 0 #ececec, 0 0.25em 0 0 #e0e0e0, 0 0.3125em 0 0 #dedede,
+        0 0.375em 0 0 #dcdcdc, 0 0.425em 0 0 #cacaca, 0 0.425em 0.5em 0 #cecece;
+    transition: 0.25s ease;
+    pointer: cursor;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     cursor: pointer;
-    z-index: 1200;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: none;
+
+    &:active,
+    &:hover {
+        transform: translateY(0.225em);
+        box-shadow: inset 0 0.03em 0 0 #f4f4f4, 0 0.03em 0 0 #efefef,
+            0 0.0625em 0 0 #ececec, 0 0.125em 0 0 #e0e0e0, 0 0.125em 0 0 #dedede,
+            0 0.2em 0 0 #dcdcdc, 0 0.225em 0 0 #cacaca, 0 0.225em 0.375em 0 #cecece;
+
+        &:after {
+            height: calc(100% + 0.225em);
+        }
+    }
+
+    &:after {
+        position: absolute;
+        content: "";
+        display: block;
+        width: 100%;
+        height: calc(100% + 0.375em);
+        top: 0;
+        left: 0;
+        background-color: transparent;
+        transition: height 0.25s ease;
+    }
 }
 
-.addNotesButton:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(93, 63, 211, 0.4);
-}
 
-.addImageButton {
-    position: fixed;
-    bottom: 8.5rem;
-    right: 1.5rem;
-    padding: 2px 25px;
-    border-radius: 100%;
-    background: var(--gradient-primary);
-    font-size: 64px;
-    color: white;
-    border: none;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(93, 63, 211, 0.3);
-    cursor: pointer;
-    z-index: 1200;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: none;
-}
-
-.addImageButton:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(93, 63, 211, 0.4);
-}
 
 .notePosts {
     width: 10000px;
@@ -522,6 +518,7 @@ body {
     pointer-events: none;
 }
 
+/******************************************* Need Fix Placement **************************************************************************************************************/
 #search-container {
     position: fixed;
     top: 20px;
@@ -621,7 +618,7 @@ body {
     user-select: none;
 }
 
-.deleteAccount-btn{
+.deleteAccount-btn {
     position: absolute;
     bottom: 35px;
     right: 50px;
@@ -711,6 +708,27 @@ dialog {
     width: 100%;
 }
 
+#setting,
+.container-account-button {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+    transition: all 0.2s ease;
+}
+
+#setting:hover,
+.container-account-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    stroke-width: 2px;
+}
+
+
 .setting-info {
     width: 100%;
     display: flex;
@@ -790,7 +808,8 @@ dialog {
     color: #e74c3c;
 }
 
-#password:focus, #confirm-password:focus {
+#password:focus,
+#confirm-password:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
@@ -803,18 +822,26 @@ dialog {
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
-.delete-speech{
+.delete-speech {
     display: flex;
     justify-content: end;
     gap: 5px;
 }
 
-.newpassword-form{
+.newpassword-form {
     width: 400px;
     display: flex;
     flex-direction: row;
@@ -825,11 +852,11 @@ dialog {
     width: 50%;
 }
 
-.form-group-two{
+.form-group-two {
     width: 50%;
 }
 
-.form-buttons{
+.form-buttons {
     position: absolute;
     bottom: 35px;
     right: 50px;
@@ -842,7 +869,7 @@ dialog {
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     padding: 10px;
     z-index: 1000;
     display: none;
@@ -916,7 +943,8 @@ dialog {
     color: #666;
 }
 
-.custom-font-selector, .color-picker {
+.custom-font-selector,
+.color-picker {
     width: 100%;
     margin-top: 10px;
     padding: 5px;
@@ -949,18 +977,21 @@ dialog {
     cursor: pointer;
 }
 
-.updateLiveTitle:hover, .updateLiveContent:hover {
+.updateLiveTitle:hover,
+.updateLiveContent:hover {
     transition: background-color 0.2s;
 }
 
-.theme-applied .updateLiveTitle, .theme-applied .updateLiveContent {
+.theme-applied .updateLiveTitle,
+.theme-applied .updateLiveContent {
     transition: all 0.3s ease;
     border: 1px solid transparent;
     overflow: auto;
     word-wrap: break-word;
 }
 
-.theme-applied .updateLiveTitle:focus, .theme-applied .updateLiveContent:focus {
+.theme-applied .updateLiveTitle:focus,
+.theme-applied .updateLiveContent:focus {
     outline: none;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -981,10 +1012,78 @@ dialog {
     background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
-.updateLiveTitle, .updateLiveContent {
+.updateLiveTitle,
+.updateLiveContent {
     transition: all 0.3s ease;
     border-radius: 4px;
     padding: 8px;
     max-width: 100%;
     overflow: auto;
+}
+
+
+.tool {
+    width: 130px;
+    min-height: 100vh;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    right: 0;
+    transition: transform 0.3s ease;
+    z-index: 10;
+    overflow-y: auto;
+    padding-bottom: 70px;
+    border-left: 1px solid rgba(93, 63, 211, 0.1);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.tool-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: start;
+    gap: 20px;
+
+}
+
+.tool.hidden {
+    transform: translateX(100%);
+}
+
+.tool-toggle-sidebar {
+
+    position: fixed;
+    top: 50%;
+    right: 130px;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(93, 63, 211, 0.2);
+    z-index: 11;
+    transition: right 0.3s ease;
+}
+
+.tool.hidden+.tool-toggle-sidebar {
+    right: 14px;
+}
+
+.tool-toggle-sidebar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(93, 63, 211, 0.4);
+}
+
+.tool-container {
+    padding: 20px;
 }
