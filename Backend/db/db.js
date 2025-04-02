@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
-
-let accountDB, categoryDB, notesDB, imageDB;
+require('dotenv').config();
+let accountDB, categoryDB, notesDB, imageDB, verifyDB;
 
 const connectDB = () => {
-    if (!accountDB || !categoryDB || !notesDB) {
-        accountDB = mongoose.createConnection('mongodb://localhost:27017/account');
-        categoryDB = mongoose.createConnection('mongodb://localhost:27017/category');
-        notesDB = mongoose.createConnection('mongodb://localhost:27017/notes')
-        imageDB = mongoose.createConnection('mongodb://localhost:27017/image')
-        verifyDB =  mongoose.createConnection('mongodb://localhost:27017/verification')
+    const mongoHost = process.env.MONGO_URI || 'mongodb://localhost:27017';
+    
+    if (!accountDB || !categoryDB || !notesDB || !imageDB || !verifyDB) {
+        accountDB = mongoose.createConnection(`${mongoHost}/account`);
+        categoryDB = mongoose.createConnection(`${mongoHost}/category`);
+        notesDB = mongoose.createConnection(`${mongoHost}/notes`);
+        imageDB = mongoose.createConnection(`${mongoHost}/image`);
+        verifyDB = mongoose.createConnection(`${mongoHost}/verification`);
 
         accountDB.on('connected', () => console.log('Connected to account database'));
         categoryDB.on('connected', () => console.log('Connected to category database'));

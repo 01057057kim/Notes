@@ -8,10 +8,19 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017/NotesApp
+      - MONGO_URI=mongodb://mongo:27017
+      - CALLBACK_URL=http://localhost:3000/account/google/callback
+      - FRONTEND_URL=http://localhost:3000
+      - SESSION_SECRET=YR8yN7yVhfW1QMCBN0LXCM7isWf10APRp2
+    env_file:
+      - ./Backend/.env
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./Backend:/Notes/Backend
+      - ./Frontend:/Notes/Frontend
+      - /Notes/node_modules
+    networks:
+      - notes-network
+    restart: unless-stopped
 
   mongo:
     image: mongo:latest
@@ -20,7 +29,14 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - notes-network
+    restart: unless-stopped
+    command: mongod --bind_ip_all --quiet
+
+networks:
+  notes-network:
+    driver: bridge
 
 volumes:
   mongo_data:
-
