@@ -242,8 +242,6 @@ body {
     }
 }
 
-
-
 .notePosts {
     width: 10000px;
     height: 10000px;
@@ -1089,13 +1087,19 @@ dialog {
 }
 
 .todo-container {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    position: absolute;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
+    padding: 15px;
+    width: 250px;
+    min-height: 250px;
+    touch-action: none;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease;
+    cursor: move;
 }
 
 .todo {
