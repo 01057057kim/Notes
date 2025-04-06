@@ -1,6 +1,7 @@
 const Todo = require('../models/todo');
-const Category = require('../models/category')
-// 创建待办事项
+const Category = require('../models/category');
+
+// Create todo
 const createTodo = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -9,10 +10,10 @@ const createTodo = async (req, res) => {
                 message: 'User not logged in'
             });
         }
-
-        const { text, categoryId } = req.body;
+        
+        const { text, categoryId, completed } = req.body;
         const userId = req.session.user.id;
-
+        
         const category = await Category.findOne({ _id: categoryId, userId });
         if (!category) {
             return res.status(404).json({
@@ -20,19 +21,23 @@ const createTodo = async (req, res) => {
                 message: 'Invalid category'
             });
         }
-
+        
         const newTodo = new Todo({
             text,
             categoryId,
-            userId
+            userId,
+            completed: completed || false
         });
-
+        
         await newTodo.save();
+        
         res.status(200).json({
             success: true,
-            message: 'Todo created successfully'
+            message: 'Todo created successfully',
+            todo: newTodo
         });
     } catch (err) {
+        console.error(err);
         res.status(500).json({
             success: false,
             message: 'Internal server error during todo creation'
@@ -40,7 +45,6 @@ const createTodo = async (req, res) => {
     }
 };
 
-// 获取待办事项
 const getTodos = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -49,17 +53,17 @@ const getTodos = async (req, res) => {
                 message: 'User not logged in'
             });
         }
-
+        
         const userId = req.session.user.id;
         const { categoryId } = req.query;
-
+        
         if (!categoryId) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid Category Id'
             });
         }
-
+        
         const todos = await Todo.find({ categoryId, userId });
         res.status(200).json({
             success: true,
@@ -74,7 +78,8 @@ const getTodos = async (req, res) => {
     }
 };
 
+
 module.exports = {
     createTodo,
-    getTodos
-};
+    getTodos,
+}

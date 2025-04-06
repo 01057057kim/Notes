@@ -595,28 +595,6 @@ function adjustNotesAndImagesPositioning() {
     }
 }
 
-const originalAddNote = window.addNote;
-window.addNote = async function (categoryId) {
-    if (originalAddNote) {
-        await originalAddNote(categoryId);
-    } else {
-        try {
-            const response = await fetch(`/notes/addnotes?categoryId=${categoryId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ title: 'New Note', content: 'Add your content here...' })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                await window.getNotes(categoryId);
-            }
-        } catch (err) {
-            console.error("Error adding note:", err);
-        }
-    }
-};
 
 const originalUploadImage = window.uploadImage;
 window.uploadImage = async function (categoryId) {
@@ -1126,6 +1104,12 @@ function integrateNewFeatures() {
     const originalGetNotes = window.getNotes;
     window.getNotes = async function (categoryId) {
         await originalGetNotes(categoryId);
+        updateMinimap();
+    };
+
+    const originalGetTodos = window.getTodos;
+    window.getTodos = async function (categoryId) {
+        await originalGetTodos(categoryId);
         updateMinimap();
     };
 

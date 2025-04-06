@@ -30,7 +30,7 @@ const todoSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-todoSchema.index({ text: 1, categoryId: 1, userId: 1 }, { unique: true });
+todoSchema.index({ text: 1, completed: 1, categoryId: 1, userId: 1 }, { unique: true });
 
 const Todo = todoDB.model('Todo', todoSchema);
 module.exports = Todo;
