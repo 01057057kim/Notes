@@ -26,11 +26,13 @@ const todoSchema = new mongoose.Schema({
         x: { type: Number, default: 0 },
         y: { type: Number, default: 0 },
         width: { type: Number, default: 250 },
-        height: { type: Number, default: 200 }
+        height: { type: Number, default: 100 },
+        canvasX: { type: Number },
+        canvasY: { type: Number }
     }
 }, { timestamps: true });
 
-todoSchema.index({ text: 1, completed: 1, categoryId: 1, userId: 1 }, { unique: true });
+todoSchema.index({ categoryId: 1, userId: 1 });
 
 const Todo = todoDB.model('Todo', todoSchema);
 module.exports = Todo;

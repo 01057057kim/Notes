@@ -1056,7 +1056,6 @@ dialog {
 }
 
 .tool-toggle-sidebar {
-
     position: fixed;
     top: 50%;
     right: 130px;
@@ -1084,4 +1083,25 @@ dialog {
 
 .tool-container {
     padding: 20px;
+}
+
+.todo-item {
+    position: absolute;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
+    padding: 15px;
+    width: 250px;
+    min-height: 250px;
+    touch-action: none;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease;
+    cursor: move;
+}
+
+.todo-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(93, 63, 211, 0.2);
 }
