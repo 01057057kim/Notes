@@ -1021,6 +1021,7 @@ dialog {
 
 
 .tool {
+    display: block;
     width: 130px;
     min-height: 100vh;
     background-color: white;
@@ -1085,23 +1086,124 @@ dialog {
     padding: 20px;
 }
 
-.todo-item {
-    position: absolute;
-    background-color: white;
-    border-radius: 8px;
+
+/** Todo Section  *************************************/
+
+.todo-section button {
+    align-self: flex-end;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.todo-section {
+    background-color: #ffffff;
+    border-radius: 10px;
     box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
-    padding: 15px;
-    width: 250px;
-    min-height: 250px;
-    touch-action: none;
-    user-select: none;
+    padding: 12px;
+    position: absolute;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.3s ease;
-    cursor: move;
+    min-height: 150px;
+}
+
+.todo-title {
+    font-size: 16px;
+    font-weight: bold;
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 5px 0;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.todo-item-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: calc(100% - 80px);
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 5px;
+    border-radius: 4px;
 }
 
 .todo-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(93, 63, 211, 0.2);
+    background-color: #f5f5f5;
+}
+
+.subtodo-checkbox {
+    margin-right: 8px;
+}
+
+.subtodo-text {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    padding: 3px;
+    border-bottom: 1px solid transparent;
+}
+
+.subtodo-text:focus {
+    outline: none;
+    border-bottom: 1px solid #5d3fd3;
+}
+
+.delete-subtodo {
+    visibility: hidden;
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 14px;
+}
+
+.todo-item:hover .delete-subtodo {
+    visibility: visible;
+}
+
+.todo-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+}
+
+.add-subtodo, .delete-todo {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.add-subtodo {
+    background-color: #5d3fd3;
+    color: white;
+}
+
+.delete-todo {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.no-subtodos {
+    color: #999;
+    text-align: center;
+    padding: 15px 0;
+    font-style: italic;
 }

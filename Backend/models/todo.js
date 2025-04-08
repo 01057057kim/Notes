@@ -23,16 +23,33 @@ const todoSchema = new mongoose.Schema({
         required: true
     },
     position: {
-        x: { type: Number, default: 0 },
-        y: { type: Number, default: 0 },
-        width: { type: Number, default: 250 },
-        height: { type: Number, default: 100 },
-        canvasX: { type: Number },
-        canvasY: { type: Number }
+        x: {
+            type: Number,
+            default: 0
+        },
+        y: {
+            type: Number,
+            default: 0
+        },
+        width: {
+            type: Number,
+            default: 250
+        },
+        height: {
+            type: Number,
+            default: 250
+        },
+    },
+    theme: {
+        bgColor: String,
+        secondaryBgColor: String,
+        textColor: String,
+        font: String,
+        fontSize: String
     }
 }, { timestamps: true });
 
-todoSchema.index({ categoryId: 1, userId: 1 });
+todoSchema.index({ text: 1, completed: 1, categoryId: 1, userId: 1, position: 1, theme: 1 });
 
 const Todo = todoDB.model('Todo', todoSchema);
 module.exports = Todo;

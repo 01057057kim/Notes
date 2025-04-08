@@ -1,7 +1,6 @@
 const Todo = require('../models/todo');
 const Category = require('../models/category');
 
-// Create todo
 const createTodo = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -45,7 +44,6 @@ const createTodo = async (req, res) => {
     }
 };
 
-// Get todos
 const getTodos = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -79,7 +77,6 @@ const getTodos = async (req, res) => {
     }
 };
 
-// Update todo status
 const updateTodoStatus = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -134,7 +131,6 @@ const updateTodoStatus = async (req, res) => {
     }
 };
 
-// Delete todo
 const deleteTodo = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -176,7 +172,6 @@ const deleteTodo = async (req, res) => {
     }
 };
 
-// Update todo position
 const updateTodosPosition = async (req, res) => {
     try {
         if (!req.session.user) {

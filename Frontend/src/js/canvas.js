@@ -441,9 +441,13 @@ function updateMinimap() {
     const indicator = document.getElementById('viewport-indicator');
     if (!minimap || !indicator) return;
 
+/////////////////////////////////////////////////////////////////////////////// 
+
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
+    const todos = document.querySelectorAll('.todo-section');
 
+///////////////////////////////////////////////////////////////////////////////
     while (minimap.querySelector('.minimap-note-indicator')) {
         minimap.querySelector('.minimap-note-indicator').remove();
     }
@@ -468,6 +472,25 @@ function updateMinimap() {
     const fragment = document.createDocumentFragment();
 
     notes.forEach(note => {
+        const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
+        const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
+        const w = note.offsetWidth * scaleX;
+        const h = note.offsetHeight * scaleY;
+
+        const noteIndicator = document.createElement('div');
+        noteIndicator.className = 'minimap-note-indicator';
+        noteIndicator.style.position = 'absolute';
+        noteIndicator.style.transform = `translate(${x}px, ${y}px)`;
+        noteIndicator.style.width = w + 'px';
+        noteIndicator.style.height = h + 'px';
+        noteIndicator.style.backgroundColor = '#5d3fd3';
+        noteIndicator.style.opacity = '0.6';
+        noteIndicator.style.pointerEvents = 'none';
+
+        fragment.appendChild(noteIndicator);
+    });
+
+    todos.forEach(note => {
         const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
         const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
         const w = note.offsetWidth * scaleX;
@@ -617,7 +640,7 @@ function addSearchFeature() {
 
             const categoryId = container.id.replace('notes-', '');
             const categoryName = categoryMap[categoryId] || 'Unknown Category';
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
             const notes = container.querySelectorAll('.note-section');
             notes.forEach(note => {
                 const titleElement = note.querySelector('.updateLiveTitle');
@@ -648,9 +671,12 @@ function addSearchFeature() {
                     }
                 }
             });
+            
         });
 
+        
         displayResults(results, searchTerm);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
     function displayResults(results, searchTerm) {
@@ -763,8 +789,8 @@ function addSearchFeature() {
                 categoryItem.classList.add('selected');
                 selectedCategoryId = categoryId;
 
-                updateAddNotesButton();
-                updateAddImageButton();
+                hiddenTool();
+
                 updateMinimap();
             }
         }
@@ -796,16 +822,21 @@ function addSearchFeature() {
     }
 
     function clearHighlights() {
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         const notes = document.querySelectorAll('.note-section');
         notes.forEach(note => {
             note.style.boxShadow = '0 4px 15px rgba(93, 63, 211, 0.1)';
         });
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     }
 
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
-    //////
+
     document.addEventListener('keydown', function (e) {
         const activeElement = document.activeElement;
         const isTyping = activeElement.tagName === 'INPUT' ||
@@ -907,16 +938,507 @@ function updateNotification() {
     }, 7000);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+function updateNotePositioning() {
+    window.saveNotePosition = async function (noteId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width);
+            const height = parseFloat(element.style.height);
+            const position = {
+                x: x,
+                y: y,
+                width,
+                height,
+                canvasX: x,
+                canvasY: y
+            };
+
+            const response = await fetch('/notes/updatenotesposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ noteId, position })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('success update notes position');
+            } else {
+                console.log('failed update notes position:', data.message);
+            }
+        } catch (err) {
+            console.log('update notes failed:', err);
+        }
+    }
+
+    window.saveImagePosition = async function (imageId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width) || 500;
+            const height = parseFloat(element.style.height) || 281;
+            const position = {
+                x: x,
+                y: y,
+                width,
+                height,
+                canvasX: x,
+                canvasY: y
+            };
+
+            const response = await fetch('/image/updateposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ imageId, position })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log('Successfully updated image position');
+            } else {
+                console.error('Failed to update image position:', data.message);
+                ntf(`Failed to save position: ${data.message}`, 'error');
+            }
+        } catch (err) {
+            console.error('Update image position failed:', err);
+        }
+    }
+}
+
+function adjustNotesAndImagesPositioning() {
+    window.originalGetNotes = window.getNotes;
+    window.getNotes = async function (categoryId) {
+        try {
+            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
+            const data = await response.json()
+            const notesContainer = document.getElementById(`notes-${categoryId}`)
+
+            if (notesContainer) {
+                const imageContainers = notesContainer.querySelectorAll('.image-container');
+                const imageElements = Array.from(imageContainers).map(container => container.cloneNode(true));
+
+                const noteSections = notesContainer.querySelectorAll('.note-section');
+                noteSections.forEach(section => section.remove());
+            }
+
+            if (!data.success) {
+                console.log('Error', data.message)
+                return
+            }
+
+            data.notes.forEach(function (notes) {
+                const notesElement = document.createElement('section')
+                const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
+                let x, y;
+
+                if (isNewNote) {
+                    x = notePostsContainer.offsetWidth / 2 - 125;
+                    y = notePostsContainer.offsetHeight / 2 - 125
+                    setTimeout(() => {
+                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                    }, 100);
+                } else {
+                    x = notes.position?.canvasX || notes.position?.x || 0;
+                    y = notes.position?.canvasY || notes.position?.y || 0;
+                }
+
+                const positionStyle = `style="width: ${notes.position?.width || 250}px; height: ${notes.position?.height || 250}px; transform: translate(${x}px, ${y}px);"`;
+                const positionData = `data-x="${x}" data-y="${y}"`;
+
+                notesElement.innerHTML = `
+                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
+                        <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                        <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
+                        <div class="delete-speech">
+                            <button id="custom"> ⫶ </button>
+                            <button id="speech">Speech</button>
+                            <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
+                        </div>
+                    </section>
+                `
+
+                if (notesContainer) {
+                    notesContainer.appendChild(notesElement)
+
+                    const titleTextarea = notesElement.querySelector('.updateLiveTitle');
+                    const contentTextarea = notesElement.querySelector('.updateLiveContent');
+                    const noteSection = notesElement.querySelector('.note-section');
+
+                    if (notes.theme) {
+                        noteSection.style.backgroundColor = notes.theme.bgColor || '';
+
+                        titleTextarea.style.color = notes.theme.titleColor || '';
+                        titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        titleTextarea.style.fontFamily = notes.theme.titleFont || '';
+                        titleTextarea.style.fontSize = notes.theme.titleSize || '';
+
+                        contentTextarea.style.color = notes.theme.contentColor || '';
+                        contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        contentTextarea.style.fontFamily = notes.theme.contentFont || '';
+                        contentTextarea.style.fontSize = notes.theme.contentSize || '';
+
+                        noteSection.classList.add('theme-applied');
+                    }
+
+                    titleTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesTitle(noteId, newValue);
+                    });
+
+                    contentTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesContent(noteId, newValue);
+                    });
+                }
+            });
+
+        } catch (err) {
+            console.log("Error: ", err)
+        }
+    }
+
+    window.originalLoadImageById = window.loadImageById;
+    window.loadImageById = async function (imageId, categoryId) {
+        try {
+            const response = await fetch(`/image/getById?imageId=${imageId}`, {
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (!data.success || !data.image) {
+                console.log('Error loading image:', data.message);
+                return;
+            }
+
+            const image = data.image;
+            const notesContainer = document.getElementById(`notes-${categoryId}`);
+            if (!notesContainer) return;
+
+            const imgContainer = document.createElement('div');
+            imgContainer.classList.add('resize-drag');
+            imgContainer.classList.add('image-container');
+            imgContainer.id = `image-container-${image._id}`;
+            imgContainer.setAttribute('data-category-id', categoryId);
+
+            const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
+            let x, y;
+            const defaultWidth = 500;
+            const defaultHeight = 281;
+
+            if (isNewImage) {
+                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2;
+                y = notePostsContainer.offsetHeight / 2 - defaultHeight / 2;
+
+                setTimeout(() => {
+                    canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
+                    canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
+                }, 100);
+            } else {
+                x = image.position?.canvasX || image.position?.x || 0;
+                y = image.position?.canvasY || image.position?.y || 0;
+            }
+
+            const width = image.position?.width || defaultWidth;
+            const height = image.position?.height || defaultHeight;
+
+            imgContainer.setAttribute('data-x', x);
+            imgContainer.setAttribute('data-y', y);
+            imgContainer.style.position = 'absolute';
+            imgContainer.style.width = `${width}px`;
+            imgContainer.style.height = `${height}px`;
+            imgContainer.style.transform = `translate(${x}px, ${y}px)`;
+
+            const hiddenTextarea = document.createElement('textarea');
+            hiddenTextarea.style.display = 'none';
+            hiddenTextarea.dataset.imageId = image._id;
+            imgContainer.appendChild(hiddenTextarea);
+
+            const img = document.createElement('img');
+            img.src = `data:${image.image.contentType};base64,${image.image.data}`;
+            img.alt = image.name;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.pointerEvents = 'none';
+
+            imgContainer.appendChild(img);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.classList.add('delete-image-button');
+            deleteButton.style.position = 'absolute';
+            deleteButton.style.bottom = '5px';
+            deleteButton.style.right = '5px';
+            deleteButton.addEventListener('click', function () {
+                deleteImage(image._id);
+                imgContainer.remove();
+            });
+
+            imgContainer.appendChild(deleteButton);
+            notesContainer.appendChild(imgContainer);
+
+            setupImageInteractions(imgContainer, image._id);
+            updateMinimap();
+
+        } catch (error) {
+            console.error('Error loading image by ID:', error);
+        }
+    }
+}
+
+function updateTodoPositioning() {
+    window.saveTodoPosition = async function (todoId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width);
+            const height = parseFloat(element.style.height);
+            const position = {
+                x,
+                y,
+                width,
+                height,
+                canvasX: x,
+                canvasY: y
+            };
+
+            const response = await fetch('/todo/updatetodoposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ todoId, position })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('Success update todos position');
+            } else {
+                console.log('Failed update todos position:', data.message);
+            }
+        } catch (err) {
+            console.log('Update todos failed:', err);
+        }
+    }
+}
+
+function adjustTodosPositioning() {
+    window.originalGetTodos = window.getTodos;
+    window.getTodos = async function (categoryId) {
+        try {
+            const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
+            const data = await response.json();
+            const todosContainer = document.getElementById(`todos-${categoryId}`);
+
+            if (todosContainer) {
+                const existingTodos = todosContainer.querySelectorAll('.todo-section');
+                existingTodos.forEach(item => item.remove());
+            }
+
+            if (!data.success) {
+                console.log('Error', data.message);
+                return;
+            }
+
+            data.todos.forEach(function (todo) {
+                const todoElement = document.createElement('section');
+                const isNewTodo = !todo.position || (!todo.position.canvasX && !todo.position.x);
+                let x, y;
+
+                if (isNewTodo) {
+                    x = notePostsContainer.offsetWidth / 2 - 125;
+                    y = notePostsContainer.offsetHeight / 2 - 125;
+
+                    setTimeout(() => {
+                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                    }, 100);
+                } else {
+                    x = todo.position?.canvasX || todo.position?.x || 0;
+                    y = todo.position?.canvasY || todo.position?.y || 0;
+                }
+
+                const positionStyle = `style="width: ${todo.position?.width || 250}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
+                const positionData = `data-x="${x}" data-y="${y}"`;
+
+                todoElement.innerHTML = `
+                <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
+                  <div class="todo-header">
+                    <input type="text" class="todo-title" value="${todo.text}" data-todo-id="${todo._id}">
+                  </div>
+                  <div class="todo-item-container" data-todo-id="${todo._id}">
+                    ${todo.subTodos && todo.subTodos.length > 0 ?
+                        todo.subTodos.map((subTodo, index) => `
+                        <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
+                          <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
+                          <input type="text" class="subtodo-text" value="${subTodo.text || ''}">
+                          <button class="delete-subtodo">✕</button>
+                        </div>
+                      `).join('') :
+                        '<div class="no-subtodos">Add subtasks below</div>'
+                    }
+                  </div>
+                  <div class="todo-actions">
+                    <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add Task</button>
+                    <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
+                  </div>
+                </section>
+              `;
+
+                if (todosContainer) {
+                    todosContainer.appendChild(todoElement);
+
+                    const titleInput = todoElement.querySelector('.todo-title');
+                    if (titleInput) {
+                        titleInput.addEventListener('input', function () {
+                            updateTodoText(todo._id, this.value);
+                        });
+                    }
+                    const subtodoCheckboxes = todoElement.querySelectorAll('.subtodo-checkbox');
+                    subtodoCheckboxes.forEach((checkbox, index) => {
+                        checkbox.addEventListener('change', function () {
+                            updateSubTodoStatus(todo._id, index, this.checked);
+                        });
+                    });
+
+                    const subtodoTexts = todoElement.querySelectorAll('.subtodo-text');
+                    subtodoTexts.forEach((textInput, index) => {
+                        textInput.addEventListener('input', function () {
+                            updateSubTodoText(todo._id, index, this.value);
+                        });
+                    });
+
+                    const deleteSubtodoButtons = todoElement.querySelectorAll('.delete-subtodo');
+                    deleteSubtodoButtons.forEach((button, index) => {
+                        button.addEventListener('click', function () {
+                            removeSubTodo(todo._id, index);
+                            this.closest('.todo-item').remove();
+                        });
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error fetching todos:", err);
+        }
+    };
+}
+
+window.addSubTodo = async function (todoId) {
+    try {
+        const response = await fetch('/todo/addsubtodo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                todoId,
+                text: 'New subtask',
+                completed: false
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+
+            const todoContainer = document.querySelector(`.todo-section[data-todo-id="${todoId}"]`);
+            if (todoContainer) {
+                const itemContainer = todoContainer.querySelector('.todo-item-container');
+
+                const noSubtodos = itemContainer.querySelector('.no-subtodos');
+                if (noSubtodos) {
+                    noSubtodos.remove();
+                }
+                const newSubtodoItem = document.createElement('div');
+                newSubtodoItem.className = 'todo-item';
+                newSubtodoItem.dataset.subtodoId = data.subTodoId || Date.now();
+                newSubtodoItem.innerHTML = `
+                    <input type="checkbox" class="subtodo-checkbox">
+                    <input type="text" class="subtodo-text" value="New subtask">
+                    <button class="delete-subtodo">✕</button>
+                `;
+
+                itemContainer.appendChild(newSubtodoItem);
+                const subtodoIndex = itemContainer.querySelectorAll('.todo-item').length - 1;
+
+                const checkbox = newSubtodoItem.querySelector('.subtodo-checkbox');
+                checkbox.addEventListener('change', function () {
+                    updateSubTodoStatus(todoId, subtodoIndex, this.checked);
+                });
+
+                const textInput = newSubtodoItem.querySelector('.subtodo-text');
+                textInput.addEventListener('input', function () {
+                    updateSubTodoText(todoId, subtodoIndex, this.value);
+                });
+
+                const deleteButton = newSubtodoItem.querySelector('.delete-subtodo');
+                deleteButton.addEventListener('click', function () {
+                    removeSubTodo(todoId, subtodoIndex);
+                    newSubtodoItem.remove();
+                });
+                textInput.focus();
+                textInput.select();
+            }
+        }
+    } catch (err) {
+        console.error('Error adding subtodo:', err);
+    }
+};
+
+window.updateSubTodoStatus = async function (todoId, subTodoIndex, completed) {
+    try {
+        await fetch('/todo/updatesubtodostatus', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex, completed })
+        });
+    } catch (err) {
+        console.error('Error updating subtodo status:', err);
+    }
+};
+
+window.updateSubTodoText = async function (todoId, subTodoIndex, text) {
+    try {
+        await fetch('/todo/updatesubtodotext', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex, text })
+        });
+    } catch (err) {
+        console.error('Error updating subtodo text:', err);
+    }
+};
+
+window.removeSubTodo = async function (todoId, subTodoIndex) {
+    try {
+        await fetch('/todo/removesubtodo', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex })
+        });
+    } catch (err) {
+        console.error('Error removing subtodo:', err);
+    }
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function initInfinityCanvas() {
     initializeCanvas();
     setupCanvasEventListeners();
     updateNotePositioning();
     updateTodoPositioning();
-    adjustTodosPositioning();
     adjustNotesAndImagesPositioning();
+    adjustTodosPositioning();
     addResetButton();
     initZoom();
-
     console.log('Infinity canvas initialized');
 
     if (!document.getElementById('canvas-minimap')) {
