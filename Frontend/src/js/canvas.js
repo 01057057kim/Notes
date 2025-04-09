@@ -1282,25 +1282,25 @@ function adjustTodosPositioning() {
                 
                 todoElement.innerHTML = `
                 <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
-                  <div class="todo-header">
-                    <input type="text" class="todo-title" value="${todo.text}" data-todo-id="${todo._id}">
-                  </div>
+                    <div class="todo-header">
+                        <input type="text" class="todo-title" value="${todo.text}" data-todo-id="${todo._id}">
+                    </div>
                   <div class="todo-item-container" data-todo-id="${todo._id}">
                     ${todo.subTodos && todo.subTodos.length > 0 ?
                         todo.subTodos.map((subTodo, index) => `
                         <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
-                          <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
-                          <input type="text" class="subtodo-text" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
-                          <button class="delete-subtodo">✕</button>
+                            <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
+                            <input type="text" class="subtodo-text" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
+                            <button class="delete-subtodo">✕</button>
                         </div>
                       `).join('') :
                         '<div class="no-subtodos">Add tasks below</div>'
                     }
                   </div>
-                  <div class="todo-actions">
-                    <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add Task</button>
-                    <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
-                  </div>
+                    <div class="todo-actions">
+                        <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add Task</button>
+                        <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
+                    </div>
                 </section>
               `;
                 

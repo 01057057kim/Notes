@@ -263,8 +263,6 @@ const updateTodosPosition = async (req, res) => {
     }
 };
 
-// Add these functions to your existing todo controller file
-
 const addSubTodo = async (req, res) => {
     try {
         if (!req.session.user) {

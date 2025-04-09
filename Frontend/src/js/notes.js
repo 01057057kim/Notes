@@ -121,42 +121,6 @@ async function getNotes(categoryId) {
             console.log('Error', data.message)
             return
         }
-        // no need
-        data.notes.forEach(function (notes) {
-            const notesElement = document.createElement('section')
-            const positionStyle = notes.position ?
-                `style="width: ${notes.position.width || 300}px; height: ${notes.position.height || 300}px; transform: translate(${notes.position.x || 0}px, ${notes.position.y || 0}px);"` : '';
-            const positionData = notes.position ?
-                `data-x="${notes.position.x || 0}" data-y="${notes.position.y || 0}"` : '';
-
-            notesElement.innerHTML = `
-                <section class="note-section resize-drag" ${positionStyle} ${positionData}>
-                    <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                    <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
-                    <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                </section>
-            `
-
-            if (notesContainer) {
-                notesContainer.appendChild(notesElement)
-
-                const titleTextarea = notesElement.querySelector('.updateLiveTitle');
-                const contentTextarea = notesElement.querySelector('.updateLiveContent');
-
-                titleTextarea.addEventListener('input', (event) => {
-                    const newValue = event.target.value;
-                    const noteId = event.target.dataset.noteId;
-                    updateNotesTitle(noteId, newValue);
-                });
-
-                contentTextarea.addEventListener('input', (event) => {
-                    const newValue = event.target.value;
-                    const noteId = event.target.dataset.noteId;
-                    updateNotesContent(noteId, newValue);
-                });
-            }
-        });
-
         if (data.success) {
             console.log("Success get note data")
         } else {

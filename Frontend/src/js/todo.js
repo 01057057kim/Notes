@@ -117,44 +117,6 @@ async function getTodos(categoryId) {
             return;
         }
 
-        data.todos.forEach(function (todo) {
-            const todoElement = document.createElement('section');
-            const positionStyle = todo.position ?
-                `style="width: ${todo.position.width || 300}px; height: ${todo.position.height || 300}px; transform: translate(${todo.position.x || 0}px, ${todo.position.y || 0}px);"` : '';
-            const positionData = todo.position ?
-                `data-x="${todo.position.x || 0}" data-y="${todo.position.y || 0}"` : 'data-x="0" data-y="0"';
-
-            todoElement.innerHTML = `
-                <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
-                  <div class="todo-content">
-                    <input type="checkbox" class="todo-checkbox" data-todo-id="${todo._id}" ${todo.completed ? 'checked' : ''}>
-                    <input type="text" class="todo-text" value="${todo.text}" data-todo-id="${todo._id}">
-                    <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add</button>
-                    <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
-                  </div>
-                </section>
-              `;
-
-            if (todosContainer) {
-                todosContainer.appendChild(todoElement);
-
-                const checkbox = todoElement.querySelector('.todo-checkbox');
-                const textInput = todoElement.querySelector('.todo-text');
-
-                if (checkbox) {
-                    checkbox.addEventListener('change', function () {
-                        updateTodoStatus(todo._id, this.checked);
-                    });
-                }
-
-                if (textInput) {
-                    textInput.addEventListener('blur', function () {
-                        updateTodoText(todo._id, this.value);
-                    });
-                }
-            }
-        });
-
         if (data.success) {
             console.log("Success get todo data");
         } else {
