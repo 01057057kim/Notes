@@ -299,44 +299,21 @@ document.addEventListener('click', function (event) {
 
 
 function hiddenTool() {
-    const globalAddNotesButton = document.getElementById('tool');
+    const globaltool = document.getElementById('tool');
     const toggle = document.getElementById('toolToggleSidebar');
     const categoryItems = document.querySelectorAll('.category-item');
 
     if (categoryItems.length > 0) {
-        globalAddNotesButton.style.display = 'block';
+        globaltool.style.display = 'block';
         toggle.style.display = 'block';
-        globalAddNotesButton.dataset.categoryId = selectedCategoryId;
+        globaltool.dataset.categoryId = selectedCategoryId;
     } else {
-        globalAddNotesButton.style.display = 'none';
+        globaltool.style.display = 'none';
         toggle.style.display = 'none';
     }
 }
 
 
-function updateAddImageButton() {
-    const globalAddImageButton = document.getElementById('globalAddImageButton');
-    const categoryItems = document.querySelectorAll('.category-item');
-
-    if (categoryItems.length > 0) {
-        globalAddImageButton.style.display = 'block';
-        globalAddImageButton.dataset.categoryId = selectedCategoryId;
-    } else {
-        globalAddImageButton.style.display = 'none';
-    }
-}
-
-function updateAddTodosButton() {
-    const globalAddTodosButton = document.getElementById('globalAddTodoButton');
-    const categoryItems = document.querySelectorAll('.category-item');
-
-    if (categoryItems.length > 0) {
-        globalAddTodosButton.style.display = 'block';
-        globalAddTodosButton.dataset.categoryId = selectedCategoryId;
-    } else {
-        globalAddTodosButton.style.display = 'none';
-    }
-}
 
 async function getUsernameVerified() {
     try {

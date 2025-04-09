@@ -28,7 +28,7 @@ interact('.note-section.resize-drag')
         },
         modifiers: [
             interact.modifiers.restrictSize({
-                min: { width: 250, height: 250 }
+                min: { width: 300, height: 300 }
             })
         ],
         inertia: true
@@ -125,7 +125,7 @@ async function getNotes(categoryId) {
         data.notes.forEach(function (notes) {
             const notesElement = document.createElement('section')
             const positionStyle = notes.position ?
-                `style="width: ${notes.position.width || 250}px; height: ${notes.position.height || 250}px; transform: translate(${notes.position.x || 0}px, ${notes.position.y || 0}px);"` : '';
+                `style="width: ${notes.position.width || 300}px; height: ${notes.position.height || 300}px; transform: translate(${notes.position.x || 0}px, ${notes.position.y || 0}px);"` : '';
             const positionData = notes.position ?
                 `data-x="${notes.position.x || 0}" data-y="${notes.position.y || 0}"` : '';
 

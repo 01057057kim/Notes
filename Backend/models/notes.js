@@ -35,11 +35,11 @@ const notesSchema = new mongoose.Schema({
         },
         width:{
             type: Number,
-            default:250
+            default:300
         },
         height:{
             type: Number,
-            default: 250
+            default: 300
         },
     },
     theme: {

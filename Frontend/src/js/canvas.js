@@ -1047,7 +1047,7 @@ function adjustNotesAndImagesPositioning() {
                     y = notes.position?.canvasY || notes.position?.y || 0;
                 }
 
-                const positionStyle = `style="width: ${notes.position?.width || 250}px; height: ${notes.position?.height || 250}px; transform: translate(${x}px, ${y}px);"`;
+                const positionStyle = `style="width: ${notes.position?.width || 300}px; height: ${notes.position?.height || 300}px; transform: translate(${x}px, ${y}px);"`;
                 const positionData = `data-x="${x}" data-y="${y}"`;
 
                 notesElement.innerHTML = `
@@ -1230,44 +1230,56 @@ function updateTodoPositioning() {
 }
 
 function adjustTodosPositioning() {
-    window.originalGetTodos = window.getTodos;
-    window.getTodos = async function (categoryId) {
+    const originalGetTodos = window.getTodos;
+    
+    window.getTodos = async function(categoryId) {
         try {
             const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
             const data = await response.json();
             const todosContainer = document.getElementById(`todos-${categoryId}`);
-
+            
             if (todosContainer) {
                 const existingTodos = todosContainer.querySelectorAll('.todo-section');
                 existingTodos.forEach(item => item.remove());
             }
-
+            
             if (!data.success) {
                 console.log('Error', data.message);
                 return;
             }
-
+            
             data.todos.forEach(function (todo) {
                 const todoElement = document.createElement('section');
                 const isNewTodo = !todo.position || (!todo.position.canvasX && !todo.position.x);
                 let x, y;
-
+                
                 if (isNewTodo) {
-                    x = notePostsContainer.offsetWidth / 2 - 125;
-                    y = notePostsContainer.offsetHeight / 2 - 125;
-
-                    setTimeout(() => {
-                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
-                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
-                    }, 100);
+                    const notePostsContainer = document.getElementById('notePosts');
+                    if (notePostsContainer) {
+                        x = notePostsContainer.offsetWidth / 2 - 125;
+                        y = notePostsContainer.offsetHeight / 2 - 125;
+                        
+                        if (typeof canvasContainer !== 'undefined' && 
+                            typeof viewportWidth !== 'undefined' && 
+                            typeof viewportHeight !== 'undefined' && 
+                            typeof zoomLevel !== 'undefined') {
+                            setTimeout(() => {
+                                canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                                canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                            }, 100);
+                        }
+                    } else {
+                        x = 0;
+                        y = 0;
+                    }
                 } else {
                     x = todo.position?.canvasX || todo.position?.x || 0;
                     y = todo.position?.canvasY || todo.position?.y || 0;
                 }
-
-                const positionStyle = `style="width: ${todo.position?.width || 250}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
+                
+                const positionStyle = `style="width: ${todo.position?.width || 300}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
                 const positionData = `data-x="${x}" data-y="${y}"`;
-
+                
                 todoElement.innerHTML = `
                 <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
                   <div class="todo-header">
@@ -1278,11 +1290,11 @@ function adjustTodosPositioning() {
                         todo.subTodos.map((subTodo, index) => `
                         <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
                           <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
-                          <input type="text" class="subtodo-text" value="${subTodo.text || ''}">
+                          <input type="text" class="subtodo-text" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
                           <button class="delete-subtodo">✕</button>
                         </div>
                       `).join('') :
-                        '<div class="no-subtodos">Add subtasks below</div>'
+                        '<div class="no-subtodos">Add tasks below</div>'
                     }
                   </div>
                   <div class="todo-actions">
@@ -1291,30 +1303,40 @@ function adjustTodosPositioning() {
                   </div>
                 </section>
               `;
-
+                
                 if (todosContainer) {
                     todosContainer.appendChild(todoElement);
-
+                    
                     const titleInput = todoElement.querySelector('.todo-title');
                     if (titleInput) {
                         titleInput.addEventListener('input', function () {
                             updateTodoText(todo._id, this.value);
                         });
                     }
+                    
                     const subtodoCheckboxes = todoElement.querySelectorAll('.subtodo-checkbox');
                     subtodoCheckboxes.forEach((checkbox, index) => {
                         checkbox.addEventListener('change', function () {
                             updateSubTodoStatus(todo._id, index, this.checked);
+
+                            const textInput = this.closest('.todo-item').querySelector('.subtodo-text');
+                            if (textInput) {
+                                if (this.checked) {
+                                    textInput.style.textDecoration = 'line-through';
+                                } else {
+                                    textInput.style.textDecoration = 'none';
+                                }
+                            }
                         });
                     });
-
+                    
                     const subtodoTexts = todoElement.querySelectorAll('.subtodo-text');
                     subtodoTexts.forEach((textInput, index) => {
                         textInput.addEventListener('input', function () {
                             updateSubTodoText(todo._id, index, this.value);
                         });
                     });
-
+                    
                     const deleteSubtodoButtons = todoElement.querySelectorAll('.delete-subtodo');
                     deleteSubtodoButtons.forEach((button, index) => {
                         button.addEventListener('click', function () {
@@ -1330,104 +1352,7 @@ function adjustTodosPositioning() {
     };
 }
 
-window.addSubTodo = async function (todoId) {
-    try {
-        const response = await fetch('/todo/addsubtodo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                todoId,
-                text: 'New subtask',
-                completed: false
-            })
-        });
 
-        const data = await response.json();
-        if (data.success) {
-
-            const todoContainer = document.querySelector(`.todo-section[data-todo-id="${todoId}"]`);
-            if (todoContainer) {
-                const itemContainer = todoContainer.querySelector('.todo-item-container');
-
-                const noSubtodos = itemContainer.querySelector('.no-subtodos');
-                if (noSubtodos) {
-                    noSubtodos.remove();
-                }
-                const newSubtodoItem = document.createElement('div');
-                newSubtodoItem.className = 'todo-item';
-                newSubtodoItem.dataset.subtodoId = data.subTodoId || Date.now();
-                newSubtodoItem.innerHTML = `
-                    <input type="checkbox" class="subtodo-checkbox">
-                    <input type="text" class="subtodo-text" value="New subtask">
-                    <button class="delete-subtodo">✕</button>
-                `;
-
-                itemContainer.appendChild(newSubtodoItem);
-                const subtodoIndex = itemContainer.querySelectorAll('.todo-item').length - 1;
-
-                const checkbox = newSubtodoItem.querySelector('.subtodo-checkbox');
-                checkbox.addEventListener('change', function () {
-                    updateSubTodoStatus(todoId, subtodoIndex, this.checked);
-                });
-
-                const textInput = newSubtodoItem.querySelector('.subtodo-text');
-                textInput.addEventListener('input', function () {
-                    updateSubTodoText(todoId, subtodoIndex, this.value);
-                });
-
-                const deleteButton = newSubtodoItem.querySelector('.delete-subtodo');
-                deleteButton.addEventListener('click', function () {
-                    removeSubTodo(todoId, subtodoIndex);
-                    newSubtodoItem.remove();
-                });
-                textInput.focus();
-                textInput.select();
-            }
-        }
-    } catch (err) {
-        console.error('Error adding subtodo:', err);
-    }
-};
-
-window.updateSubTodoStatus = async function (todoId, subTodoIndex, completed) {
-    try {
-        await fetch('/todo/updatesubtodostatus', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ todoId, subTodoIndex, completed })
-        });
-    } catch (err) {
-        console.error('Error updating subtodo status:', err);
-    }
-};
-
-window.updateSubTodoText = async function (todoId, subTodoIndex, text) {
-    try {
-        await fetch('/todo/updatesubtodotext', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ todoId, subTodoIndex, text })
-        });
-    } catch (err) {
-        console.error('Error updating subtodo text:', err);
-    }
-};
-
-window.removeSubTodo = async function (todoId, subTodoIndex) {
-    try {
-        await fetch('/todo/removesubtodo', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ todoId, subTodoIndex })
-        });
-    } catch (err) {
-        console.error('Error removing subtodo:', err);
-    }
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function initInfinityCanvas() {

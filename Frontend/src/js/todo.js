@@ -28,7 +28,7 @@ interact('.todo-section.resize-drag')
         },
         modifiers: [
             interact.modifiers.restrictSize({
-                min: { width: 200, height: 250 }
+                min: { width: 300, height: 300 }
             })
         ],
         inertia: true
@@ -120,7 +120,7 @@ async function getTodos(categoryId) {
         data.todos.forEach(function (todo) {
             const todoElement = document.createElement('section');
             const positionStyle = todo.position ?
-                `style="width: ${todo.position.width || 250}px; height: ${todo.position.height || 100}px; transform: translate(${todo.position.x || 0}px, ${todo.position.y || 0}px);"` : '';
+                `style="width: ${todo.position.width || 300}px; height: ${todo.position.height || 300}px; transform: translate(${todo.position.x || 0}px, ${todo.position.y || 0}px);"` : '';
             const positionData = todo.position ?
                 `data-x="${todo.position.x || 0}" data-y="${todo.position.y || 0}"` : 'data-x="0" data-y="0"';
 
@@ -167,7 +167,7 @@ async function getTodos(categoryId) {
 
 async function updateTodoText(todoId, newText) {
     try {
-        const response = await fetch('/todo/updatetodostatus', {
+        const response = await fetch('/todo/updatetodotext', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -236,11 +236,6 @@ async function deleteTodo(todoId) {
     }
 }
 
-async function addSubTodo(parentTodoId) {
-    console.log(`Adding subtodo for parent: ${parentTodoId}`);
-    ntf('Subtodo feature coming soon!', 'info');
-}
-
 async function saveTodoPosition(todoId, element) {
     try {
         const x = parseFloat(element.getAttribute('data-x')) || 0;
@@ -267,4 +262,125 @@ async function saveTodoPosition(todoId, element) {
         console.log('Update todos failed:', err);
     }
 }
+
+window.addSubTodo = async function (todoId) {
+    try {
+        const response = await fetch('/todo/addsubtodo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                todoId,
+                text: 'New subtask',
+                completed: false
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('SubTodo added successfully:', data);
+            
+            const todoContainer = document.querySelector(`.todo-section[data-todo-id="${todoId}"]`);
+            if (todoContainer) {
+                const itemContainer = todoContainer.querySelector('.todo-item-container');
+                
+                const noSubtodos = itemContainer.querySelector('.no-subtodos');
+                if (noSubtodos) {
+                    noSubtodos.remove();
+                }
+                
+                const newSubtodoItem = document.createElement('div');
+                newSubtodoItem.className = 'todo-item';
+                newSubtodoItem.dataset.subtodoId = data.subTodoId || Date.now();
+                newSubtodoItem.innerHTML = `
+                    <input type="checkbox" class="subtodo-checkbox">
+                    <input type="text" class="subtodo-text" value="New subtask">
+                    <button class="delete-subtodo">✕</button>
+                `;
+                
+                itemContainer.appendChild(newSubtodoItem);
+                const subtodoIndex = itemContainer.querySelectorAll('.todo-item').length - 1;
+                
+                const checkbox = newSubtodoItem.querySelector('.subtodo-checkbox');
+                checkbox.addEventListener('change', function () {
+                    updateSubTodoStatus(todoId, subtodoIndex, this.checked);
+                });
+                
+                const textInput = newSubtodoItem.querySelector('.subtodo-text');
+                textInput.addEventListener('input', function () {
+                    updateSubTodoText(todoId, subtodoIndex, this.value);
+                });
+                
+                const deleteButton = newSubtodoItem.querySelector('.delete-subtodo');
+                deleteButton.addEventListener('click', function () {
+                    removeSubTodo(todoId, subtodoIndex);
+                    newSubtodoItem.remove();
+                });
+                
+                textInput.focus();
+                textInput.select();
+            }
+        } else {
+            console.error('Failed to add subtodo:', data.message);
+            ntf('Failed to add subtask', 'error');
+        }
+    } catch (err) {
+        console.error('Error adding subtodo:', err);
+        ntf('Error adding subtask', 'error');
+    }
+};
+
+window.updateSubTodoStatus = async function (todoId, subTodoIndex, completed) {
+    try {
+        const response = await fetch('/todo/updatesubtodostatus', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex, completed })
+        });
+        
+        const data = await response.json();
+        if (!data.success) {
+            console.error('Failed to update subtodo status:', data.message);
+        }
+    } catch (err) {
+        console.error('Error updating subtodo status:', err);
+    }
+};
+
+window.updateSubTodoText = async function (todoId, subTodoIndex, text) {
+    try {
+        const response = await fetch('/todo/updatesubtodotext', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex, text })
+        });
+        
+        const data = await response.json();
+        if (!data.success) {
+            console.error('Failed to update subtodo text:', data.message);
+        }
+    } catch (err) {
+        console.error('Error updating subtodo text:', err);
+    }
+};
+
+window.removeSubTodo = async function (todoId, subTodoIndex) {
+    try {
+        const response = await fetch('/todo/removesubtodo', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ todoId, subTodoIndex })
+        });
+        
+        const data = await response.json();
+        if (!data.success) {
+            console.error('Failed to remove subtodo:', data.message);
+        }
+    } catch (err) {
+        console.error('Error removing subtodo:', err);
+    }
+};
 

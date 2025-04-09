@@ -269,14 +269,14 @@ body {
     user-select: none;
 }
 
-.note-section {
+.note-section  {
     position: absolute;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
     padding: 15px;
-    width: 250px;
-    min-height: 250px;
+    min-width: 300px;
+    min-height: 300px;
     touch-action: none;
     user-select: none;
     display: flex;
@@ -290,7 +290,8 @@ body {
     box-shadow: 0 10px 25px rgba(93, 63, 211, 0.2);
 }
 
-.updateLiveTitle {
+.updateLiveTitle, .todo-title  {
+    max-height: 50px;
     width: 100%;
     padding: 5px;
     border: none;
@@ -301,8 +302,10 @@ body {
     height: auto;
     min-height: 35px;
     color: var(--text-color);
+    resize:none;
+    overflow: hidden;
+    align-content: center;
 }
-
 .updateLiveContent {
     width: 100%;
     padding: 5px;
@@ -975,6 +978,7 @@ dialog {
     cursor: pointer;
 }
 
+.todo-title:hover,
 .updateLiveTitle:hover,
 .updateLiveContent:hover {
     transition: background-color 0.2s;
@@ -994,7 +998,7 @@ dialog {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.updateLiveTitle:hover {
+.updateLiveTitle:hover, .todo-title:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -1010,11 +1014,11 @@ dialog {
     background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
+.todo-title:hover,
 .updateLiveTitle,
 .updateLiveContent {
     transition: all 0.3s ease;
     border-radius: 4px;
-    padding: 8px;
     max-width: 100%;
     overflow: auto;
 }
@@ -1088,7 +1092,9 @@ dialog {
 
 
 /** Todo Section  *************************************/
-
+.todo-title{
+    min-height: 50px;
+}
 .todo-section button {
     align-self: flex-end;
     background-color: var(--accent-color);
@@ -1103,30 +1109,25 @@ dialog {
     margin-left: 5px;
 }
 
-.todo-section {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
-    padding: 12px;
+.todo-section{
     position: absolute;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(93, 63, 211, 0.1);
+    padding: 15px;
+    min-width: 300px;
+    min-height: 300px;
+    touch-action: none;
+    user-select: none;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    min-height: 150px;
+    cursor: move;
 }
 
-.todo-title {
-    font-size: 16px;
-    font-weight: bold;
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 5px 0;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #eee;
-}
 
 .todo-item-container {
+    margin-top: 10px;
     flex-grow: 1;
     overflow-y: auto;
     max-height: calc(100% - 80px);
@@ -1135,7 +1136,7 @@ dialog {
 .todo-item {
     display: flex;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     padding: 5px;
     border-radius: 4px;
 }
@@ -1168,7 +1169,9 @@ dialog {
     color: #ff6b6b;
     cursor: pointer;
     padding: 0 5px;
-    font-size: 14px;
+    display: flex;
+    align-self: center;
+    text-align: center;
 }
 
 .todo-item:hover .delete-subtodo {

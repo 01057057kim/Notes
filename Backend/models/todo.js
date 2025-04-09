@@ -1,7 +1,17 @@
 const mongoose = require('mongoose');
 const connectDB = require('../db/db');
-
 const { todoDB } = connectDB();
+
+const subtodoSchema = new mongoose.Schema({
+    text: {
+        type: String,
+        required: true
+    },
+    completed: {
+        type: Boolean,
+        default: false
+    }
+}, { _id: true });
 
 const todoSchema = new mongoose.Schema({
     text: {
@@ -33,13 +43,14 @@ const todoSchema = new mongoose.Schema({
         },
         width: {
             type: Number,
-            default: 250
+            default: 300
         },
         height: {
             type: Number,
-            default: 250
+            default: 300
         },
     },
+    subTodos: [subtodoSchema],
     theme: {
         bgColor: String,
         secondaryBgColor: String,
@@ -49,7 +60,7 @@ const todoSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-todoSchema.index({ text: 1, completed: 1, categoryId: 1, userId: 1, position: 1, theme: 1 });
+todoSchema.index({ title: 1 ,text: 1, completed: 1, categoryId: 1, userId: 1, position: 1, theme: 1 });
 
 const Todo = todoDB.model('Todo', todoSchema);
 module.exports = Todo;

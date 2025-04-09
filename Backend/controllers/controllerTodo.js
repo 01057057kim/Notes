@@ -77,6 +77,51 @@ const getTodos = async (req, res) => {
     }
 };
 
+const updateTodoText = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        const { todoId, text } = req.body;
+        
+        if (!todoId || !text) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid request parameters"
+            });
+        }
+        
+        const updatedTodo = await Todo.findOneAndUpdate(
+            { _id: todoId, userId },
+            { text },
+            { new: true }
+        );
+        
+        if (!updatedTodo) {
+            return res.status(404).json({
+                success: false,
+                message: 'Todo not found'
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: 'Todo text updated successfully',
+            data: updatedTodo
+        });
+    } catch (err) {
+        console.error('Error updating todo text:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating todo text'
+        });
+    }
+};
 const updateTodoStatus = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -218,10 +263,201 @@ const updateTodosPosition = async (req, res) => {
     }
 };
 
+// Add these functions to your existing todo controller file
+
+const addSubTodo = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        const { todoId, text, completed } = req.body;
+        
+        if (!todoId) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Todo ID"
+            });
+        }
+        
+        const todo = await Todo.findOne({ _id: todoId, userId });
+        
+        if (!todo) {
+            return res.status(404).json({
+                success: false,
+                message: 'Todo not found'
+            });
+        }
+        
+        const newSubTodo = {
+            text: text || 'New subtask',
+            completed: completed || false
+        };
+        
+        todo.subTodos.push(newSubTodo);
+        await todo.save();
+        
+        const subTodoId = todo.subTodos[todo.subTodos.length - 1]._id;
+        
+        res.status(200).json({
+            success: true,
+            message: 'SubTodo added successfully',
+            subTodoId: subTodoId
+        });
+    } catch (err) {
+        console.error('Error adding subtodo:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while adding subtodo'
+        });
+    }
+};
+
+const updateSubTodoStatus = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        const { todoId, subTodoIndex, completed } = req.body;
+        
+        if (!todoId || subTodoIndex === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid request parameters"
+            });
+        }
+        
+        const todo = await Todo.findOne({ _id: todoId, userId });
+        
+        if (!todo || !todo.subTodos[subTodoIndex]) {
+            return res.status(404).json({
+                success: false,
+                message: 'Todo or SubTodo not found'
+            });
+        }
+        
+        todo.subTodos[subTodoIndex].completed = completed;
+        await todo.save();
+        
+        res.status(200).json({
+            success: true,
+            message: 'SubTodo status updated successfully'
+        });
+    } catch (err) {
+        console.error('Error updating subtodo status:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating subtodo status'
+        });
+    }
+};
+
+const updateSubTodoText = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        const { todoId, subTodoIndex, text } = req.body;
+        
+        if (!todoId || subTodoIndex === undefined || !text) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid request parameters"
+            });
+        }
+        
+        const todo = await Todo.findOne({ _id: todoId, userId });
+        
+        if (!todo || !todo.subTodos[subTodoIndex]) {
+            return res.status(404).json({
+                success: false,
+                message: 'Todo or SubTodo not found'
+            });
+        }
+        
+        todo.subTodos[subTodoIndex].text = text;
+        await todo.save();
+        
+        res.status(200).json({
+            success: true,
+            message: 'SubTodo text updated successfully'
+        });
+    } catch (err) {
+        console.error('Error updating subtodo text:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while updating subtodo text'
+        });
+    }
+};
+
+const removeSubTodo = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not logged in'
+            });
+        }
+        
+        const userId = req.session.user.id;
+        const { todoId, subTodoIndex } = req.body;
+        
+        if (!todoId || subTodoIndex === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid request parameters"
+            });
+        }
+        
+        const todo = await Todo.findOne({ _id: todoId, userId });
+        
+        if (!todo || !todo.subTodos[subTodoIndex]) {
+            return res.status(404).json({
+                success: false,
+                message: 'Todo or SubTodo not found'
+            });
+        }
+        
+        todo.subTodos.splice(subTodoIndex, 1);
+        await todo.save();
+        
+        res.status(200).json({
+            success: true,
+            message: 'SubTodo removed successfully'
+        });
+    } catch (err) {
+        console.error('Error removing subtodo:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error occurred while removing subtodo'
+        });
+    }
+};
+
 module.exports = {
     createTodo,
     getTodos,
+    updateTodoText,
     updateTodoStatus,
     deleteTodo,
-    updateTodosPosition
+    updateTodosPosition,
+    addSubTodo,
+    updateSubTodoStatus,
+    updateSubTodoText,
+    removeSubTodo
 };
