@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/interactjs"></script>
     <link rel="icon" href="/img/2.png" type="image/png">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/notification.css">
     <title>NoteNest - Elevate Your Creativity</title>
 </head>
+
 <body>
     <header>
         <div class="logo"><a href="index.html">NoteNest</a></div>
@@ -21,27 +27,34 @@
     <main>
         <div class="content">
             <h1>Transform Your Ideas into Action</h1>
-            <p>NoteNest is more than a note-taking app. It's your personal creativity engine, designed to capture, organize, and bring your thoughts to life.</p>
+            <p>NoteNest is more than a Note taking app. It's your personal creativity engine, designed to capture,
+                organize, and bring your thoughts to life.</p>
             <div class="cta">
                 <button class="btn btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
                     </svg>
                     Start Free
                 </button>
-                <button class="btn btn-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Watch Demo
-                </button>
             </div>
         </div>
-        <div class="video">
-            <img src="" alt="NoteNest Demo">
-            <div class="overlay"></div>
+        <div class="demo" id="demo">
+            <section class="note-section resize-drag" style="transform: translate(50px, 50px);" data-x="50" data-y="50">
+                <textarea class="updateLiveTitle" maxlength="60">Add your Title here...</textarea><br>
+                <textarea class="updateLiveContent" maxlength="200">Add your Content here...</textarea>
+                <div class="delete-speech">
+                    <button id="custom"> ⫶ </button>
+                    <button id="speech">Speech</button>
+                    <button id="delete">Delete</button>
+                </div>
+            </section>
         </div>
     </main>
-    <script src="notification.js"></script>
+    <script src="js/notification.js"></script>
+    <script src="js/themes.js"></script>
     <script>
         document.querySelector('.btn-login').addEventListener('click', () => {
             window.location.href = '/login.html';
@@ -55,8 +68,247 @@
             window.location.href = '/register.html';
         });
 
+        function saveNotesToLocalStorage() {
+            const notes = [];
+            document.querySelectorAll('.note-section').forEach(noteEl => {
+                const x = parseFloat(noteEl.getAttribute('data-x')) || 0;
+                const y = parseFloat(noteEl.getAttribute('data-y')) || 0;
+                const width = noteEl.style.width || '300px';
+                const height = noteEl.style.height || '300px';
+                const title = noteEl.querySelector('.updateLiveTitle').value;
+                const content = noteEl.querySelector('.updateLiveContent').value;
+
+                notes.push({
+                    x,
+                    y,
+                    width,
+                    height,
+                    title,
+                    content
+                });
+            });
+
+            localStorage.setItem('noteNestNotes', JSON.stringify(notes));
+        }
+
+        function loadNotesFromLocalStorage() {
+            const savedNotes = localStorage.getItem('noteNestNotes');
+            if (!savedNotes) return;
+
+            try {
+                const notes = JSON.parse(savedNotes);
+                document.getElementById('demo').innerHTML = '';
+                notes.forEach(note => {
+                    const noteSection = document.createElement('section');
+                    noteSection.className = 'note-section resize-drag';
+                    noteSection.style.transform = `translate(${note.x}px, ${note.y}px)`;
+                    noteSection.setAttribute('data-x', note.x);
+                    noteSection.setAttribute('data-y', note.y);
+                    noteSection.style.width = note.width;
+                    noteSection.style.height = note.height;
+
+                    noteSection.innerHTML = `
+                        <textarea class="updateLiveTitle" maxlength="60">${note.title}</textarea><br>
+                        <textarea class="updateLiveContent" maxlength="200">${note.content}</textarea>
+                        <div class="delete-speech">
+                            <button id="custom"> ⫶ </button>
+                            <button id="speech">Speech</button>
+                            <button id="delete">Delete</button> 
+                        </div>
+                    `;
+                    document.getElementById('demo').appendChild(noteSection);
+                });
+            } catch (error) {
+                console.error('Error loading notes:', error);
+            }
+        }
+
+        interact('.note-section')
+            .resizable({
+                edges: { top: true, left: true, bottom: true, right: true },
+                listeners: {
+                    move: function (event) {
+                        const target = event.target;
+                        let x = (parseFloat(target.getAttribute('data-x')) || 0);
+                        let y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+                        target.style.width = event.rect.width + 'px';
+                        target.style.height = event.rect.height + 'px';
+
+                        x += event.deltaRect.left;
+                        y += event.deltaRect.top;
+
+                        target.style.transform = `translate(${x}px, ${y}px)`;
+
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+                        saveNotesToLocalStorage();
+                    }
+                },
+                modifiers: [
+                    interact.modifiers.restrictSize({
+                        min: { width: 300, height: 300 },
+                        max: { width: 420, height: 420 }
+                    })
+                ],
+                inertia: true
+            })
+            .draggable({
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: '#demo',
+                        endOnly: true
+                    })
+                ],
+                autoScroll: true,
+                listeners: {
+                    move(event) {
+                        const target = event.target;
+
+                        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                        target.style.transform = `translate(${x}px, ${y}px)`;
+
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+
+                        target.style.zIndex = '1000';
+                    },
+                    end(event) {
+                        event.target.style.zIndex = '1';
+                        saveNotesToLocalStorage();
+                    }
+                }
+            });
+
+        document.addEventListener('input', function (event) {
+            if (event.target && (event.target.classList.contains('updateLiveTitle') ||
+                event.target.classList.contains('updateLiveContent'))) {
+                saveNotesToLocalStorage();
+            }
+        });
+
+
+        function setupSpeechRecognition() {
+            document.addEventListener('click', function (event) {
+                if (event.target && event.target.id === 'speech') {
+                    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                        ntf('Speech recognition is not supported in your browser.', 'error');
+                        return;
+                    }
+
+                    const noteSection = event.target.closest('.note-section');
+                    if (noteSection) {
+                        const contentTextarea = noteSection.querySelector('.updateLiveContent');
+                        if (contentTextarea) {
+                            toggleSpeechRecognition(contentTextarea, event.target);
+                        }
+                    }
+                }
+            });
+        }
+
+        const recognitionInstances = {};
+
+        function toggleSpeechRecognition(contentTextarea, button) {
+            const noteId = contentTextarea.getAttribute('data-note-id');
+
+            if (recognitionInstances[noteId]) {
+                recognitionInstances[noteId].stop();
+                recognitionInstances[noteId] = null;
+                button.textContent = 'Speech';
+                button.classList.remove('recording');
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                ntf('Speech recognition is not supported in your browser.', 'error');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            let finalTranscript = contentTextarea.value || '';
+            let cursorPosition = contentTextarea.selectionStart;
+
+            button.textContent = 'Stop';
+            button.classList.add('recording');
+
+            recognitionInstances[noteId] = recognition;
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+
+                    if (event.results[i].isFinal) {
+                        finalTranscript += ' ' + transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                const content = finalTranscript + interimTranscript;
+                contentTextarea.value = content;
+
+                contentTextarea.selectionStart = content.length;
+                contentTextarea.selectionEnd = content.length;
+            };
+
+            recognition.onerror = function (event) {
+                if (event.error === 'no-speech') {
+                    ntf('No speech was detected. Please try again.', 'info');
+                } else {
+                    ntf('Speech recognition error: ' + event.error, 'error');
+                    console.error('Speech recognition error:', event.error);
+                }
+                button.textContent = 'Speech';
+                button.classList.remove('recording');
+                recognitionInstances[noteId] = null;
+            };
+
+            recognition.onend = function () {
+                button.textContent = 'Speech';
+                button.classList.remove('recording');
+                recognitionInstances[noteId] = null;
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                ntf('Error starting speech recognition: ' + error.message, 'error');
+                console.error('Error starting speech recognition:', error);
+                button.textContent = 'Speech';
+                button.classList.remove('recording');
+            }
+        }
+
+        /*function setupDeleteButton() {
+            document.addEventListener('click', function (event) {
+                if (event.target && event.target.id === 'delete') {
+                    const noteSection = event.target.closest('.note-section');
+                    if (noteSection) {
+                        noteSection.remove();
+                    }
+                }
+            });
+        }*/
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNotesFromLocalStorage();
+            setupSpeechRecognition();
+            //setupDeleteButton();
+        });
     </script>
 </body>
-</html>
 
-<!-- Add Demo video -->
+</html>

@@ -1,9 +1,11 @@
 const Category = require('../models/category')
 const Notes = require('../models/notes')
+const Todo = require('../models/todo')
+const Image = require('../models/image')
 
 const createCategory = async (req, res) => {
-    try{
-        if(!req.session.user){
+    try {
+        if (!req.session.user) {
             return res.status(400).json({
                 success: false,
                 message: 'User not logged in'
@@ -34,18 +36,18 @@ const createCategory = async (req, res) => {
 }
 
 const getCategory = async (req, res) => {
-    try{
-        if(!req.session.user){
+    try {
+        if (!req.session.user) {
             return res.status(400).json({
                 success: false,
                 message: 'User not logged in'
             });
         }
         const userId = req.session.user.id
-        const categories = await Category.find({userId})
+        const categories = await Category.find({ userId })
 
-        res.status(200).json({success: true, categories})
-    }catch(err){
+        res.status(200).json({ success: true, categories })
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
@@ -55,34 +57,44 @@ const getCategory = async (req, res) => {
 }
 
 const deleteCategory = async (req, res) => {
-    try{
-        if(!req.session.user){
+    try {
+        if (!req.session.user) {
             return res.status(400).json({
                 success: false,
                 message: 'User not logged in'
             });
         }
-        
+
         const userId = req.session.user.id
         const categoryId = req.body.id
 
-        const deletedNotes = await Notes.deleteMany({ categoryId, userId }); // for delete notes database if parent got deleted
-        
+        const deletedNotes = await Notes.deleteMany({ categoryId, userId });
+        console.log('Notes deletion result:', deletedNotes);
+
+        const deletedImages = await Image.deleteMany({ categoryId, userId });
+        console.log(`Deleted ${deletedImages.deletedCount} images`);
+
+        const todoCount = await Todo.countDocuments({ categoryId, userId });
+        console.log(`Found ${todoCount} todos to delete for category ${categoryId}`);
+
+        const deletedTodos = await Todo.deleteMany({ categoryId, userId });
+        console.log('Todo deletion result:', deletedTodos);
+
         const category = await Category.findOneAndDelete({ _id: categoryId, userId })
-        
-        if(!category){
+
+        if (!category) {
             return res.status(404).json({
                 success: false,
                 message: "false category"
             })
         }
-        
+
         console.log('Category Deleted:', category);
         res.status(200).json({
             success: true,
-            message: `Category and ${deletedNotes.deletedCount} associated notes deleted`
+            message: `Category deleted with ${deletedNotes.deletedCount} notes, ${deletedTodos.deletedCount} todos, and ${deletedImages.deletedCount} images`
         })
-    }catch(err){
+    } catch (err) {
         res.status(500).json({
             success: false,
             message: 'Failed to Delete'
@@ -101,7 +113,7 @@ const updateCategory = async (req, res) => {
 
         const userId = req.session.user.id;
         const { categoryId, newValue } = req.body;
-        
+
         const category = await Category.findOneAndUpdate(
             { _id: categoryId, userId },
             { categoryName: newValue },
@@ -130,7 +142,7 @@ const updateCategory = async (req, res) => {
 };
 
 
-module.exports ={
+module.exports = {
     createCategory,
     getCategory,
     deleteCategory,

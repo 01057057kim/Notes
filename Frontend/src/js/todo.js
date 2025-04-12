@@ -256,7 +256,7 @@ window.addSubTodo = async function (todoId) {
                 newSubtodoItem.dataset.subtodoId = data.subTodoId || Date.now();
                 newSubtodoItem.innerHTML = `
                     <input type="checkbox" class="subtodo-checkbox">
-                    <input type="text" class="subtodo-text" value="New subtask">
+                    <input type="text" class="subtodo-text" maxlength="60" value="New subtask">
                     <button class="delete-subtodo">✕</button>
                 `;
                 

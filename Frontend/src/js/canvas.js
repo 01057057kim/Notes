@@ -441,13 +441,13 @@ function updateMinimap() {
     const indicator = document.getElementById('viewport-indicator');
     if (!minimap || !indicator) return;
 
-/////////////////////////////////////////////////////////////////////////////// 
+    /////////////////////////////////////////////////////////////////////////////// 
 
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
     const todos = document.querySelectorAll('.todo-section');
 
-///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
     while (minimap.querySelector('.minimap-note-indicator')) {
         minimap.querySelector('.minimap-note-indicator').remove();
     }
@@ -490,23 +490,23 @@ function updateMinimap() {
         fragment.appendChild(noteIndicator);
     });
 
-    todos.forEach(note => {
-        const x = (parseFloat(note.getAttribute('data-x')) || 0) * scaleX;
-        const y = (parseFloat(note.getAttribute('data-y')) || 0) * scaleY;
-        const w = note.offsetWidth * scaleX;
-        const h = note.offsetHeight * scaleY;
+    todos.forEach(todo => {
+        const x = (parseFloat(todo.getAttribute('data-x')) || 0) * scaleX;
+        const y = (parseFloat(todo.getAttribute('data-y')) || 0) * scaleY;
+        const w = todo.offsetWidth * scaleX;
+        const h = todo.offsetHeight * scaleY;
 
-        const noteIndicator = document.createElement('div');
-        noteIndicator.className = 'minimap-note-indicator';
-        noteIndicator.style.position = 'absolute';
-        noteIndicator.style.transform = `translate(${x}px, ${y}px)`;
-        noteIndicator.style.width = w + 'px';
-        noteIndicator.style.height = h + 'px';
-        noteIndicator.style.backgroundColor = '#5d3fd3';
-        noteIndicator.style.opacity = '0.6';
-        noteIndicator.style.pointerEvents = 'none';
+        const todoIndicator = document.createElement('div');
+        todoIndicator.className = 'minimap-note-indicator';
+        todoIndicator.style.position = 'absolute';
+        todoIndicator.style.transform = `translate(${x}px, ${y}px)`;
+        todoIndicator.style.width = w + 'px';
+        todoIndicator.style.height = h + 'px';
+        todoIndicator.style.backgroundColor = '#FF9800';
+        todoIndicator.style.opacity = '0.6';
+        todoIndicator.style.pointerEvents = 'none';
 
-        fragment.appendChild(noteIndicator);
+        fragment.appendChild(todoIndicator);
     });
 
     images.forEach(img => {
@@ -579,7 +579,7 @@ function addSearchFeature() {
     const searchInput = document.createElement('input');
     searchInput.id = 'search-input';
     searchInput.type = 'text';
-    searchInput.placeholder = 'Search notes...';
+    searchInput.placeholder = 'Search notes and todos...';
     searchContainer.appendChild(searchInput);
 
     const searchButton = document.createElement('button');
@@ -587,7 +587,6 @@ function addSearchFeature() {
     searchButton.textContent = 'Search';
     searchContainer.appendChild(searchButton);
 
-    // all note containers **
     const searchAllCheckbox = document.createElement('input');
     searchAllCheckbox.type = 'checkbox';
     searchAllCheckbox.id = 'search-all-categories';
@@ -640,7 +639,7 @@ function addSearchFeature() {
 
             const categoryId = container.id.replace('notes-', '');
             const categoryName = categoryMap[categoryId] || 'Unknown Category';
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             const notes = container.querySelectorAll('.note-section');
             notes.forEach(note => {
                 const titleElement = note.querySelector('.updateLiveTitle');
@@ -656,27 +655,103 @@ function addSearchFeature() {
                 const contentMatch = content.toLowerCase().includes(searchTerm);
 
                 if (titleMatch || contentMatch) {
+                    const originalStyle = window.getComputedStyle(note);
+                    const originalBoxShadow = originalStyle.boxShadow;
+
                     results.push({
                         element: note,
-                        noteId,
+                        id: noteId,
                         categoryId,
                         categoryName,
                         title,
                         content,
                         titleMatch,
-                        contentMatch
+                        contentMatch,
+                        type: 'note',
+                        originalBoxShadow
                     });
+
                     if (container.style.display !== 'none') {
                         note.style.boxShadow = '0 0 0 3px #5d3fd3';
                     }
                 }
             });
-            
         });
 
-        
+        const todosContainers = document.querySelectorAll('[id^="todos-"]');
+        todosContainers.forEach(container => {
+            if (!searchAll && container.style.display === 'none') {
+                return;
+            }
+
+            const categoryId = container.id.replace('todos-', '');
+            const categoryName = categoryMap[categoryId] || 'Unknown Category';
+
+            const todos = container.querySelectorAll('.todo-section');
+            todos.forEach(todo => {
+                const titleElement = todo.querySelector('.todo-title');
+                if (!titleElement) return;
+
+                const title = titleElement.value;
+                const todoId = todo.getAttribute('data-todo-id');
+
+                const subtasks = [];
+                todo.querySelectorAll('.subtodo-text').forEach(subtask => {
+                    subtasks.push(subtask.value);
+                });
+
+                const content = subtasks.join(' ');
+                const titleMatch = title.toLowerCase().includes(searchTerm);
+                const contentMatch = content.toLowerCase().includes(searchTerm);
+
+                if (titleMatch || contentMatch) {
+                    const originalStyle = window.getComputedStyle(todo);
+                    const originalBoxShadow = originalStyle.boxShadow;
+                    const todoColor = originalStyle.backgroundColor || '#ffffff';
+
+                    results.push({
+                        element: todo,
+                        id: todoId,
+                        categoryId,
+                        categoryName,
+                        title,
+                        content,
+                        titleMatch,
+                        contentMatch,
+                        type: 'todo',
+                        originalBoxShadow,
+                        todoColor
+                    });
+
+                    if (container.style.display !== 'none') {
+                        const highlightColor = getHighlightColorForTodo(todo);
+                        todo.style.boxShadow = `0 0 0 3px ${highlightColor}`;
+                    }
+                }
+            });
+        });
+
         displayResults(results, searchTerm);
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    }
+
+    function getHighlightColorForTodo(todoElement) {
+        let highlightColor = '#FF9800';
+        const computedStyle = window.getComputedStyle(todoElement);
+        const backgroundColor = computedStyle.backgroundColor;
+
+        if (backgroundColor && backgroundColor !== 'transparent' && backgroundColor !== 'rgba(0, 0, 0, 0)') {
+            const todoHeader = todoElement.querySelector('.todo-header');
+            if (todoHeader) {
+                const headerStyle = window.getComputedStyle(todoHeader);
+                const headerColor = headerStyle.backgroundColor;
+
+                if (headerColor && headerColor !== 'transparent' && headerColor !== 'rgba(0, 0, 0, 0)') {
+                    highlightColor = headerColor;
+                }
+            }
+        }
+
+        return highlightColor;
     }
 
     function displayResults(results, searchTerm) {
@@ -736,15 +811,38 @@ function addSearchFeature() {
                     contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
                 }
 
+                const itemTypeIcon = result.type === 'todo' ?
+                    `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Edit / List_Checklist">
+                            <path id="Vector"
+                                d="M11 17H20M8 15L5.5 18L4 17M11 12H20M8 10L5.5 13L4 12M11 7H20M8 5L5.5 8L4 7"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>` :
+                    `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="File / Note_Edit">
+                            <path id="Vector"
+                                d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
+                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>`;
+
+                let colorIndicator = '';
+
+
                 resultItem.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px;">${titleDisplay}</div>
+                    <div style="font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: start;">
+                        <span style="display: inline-block; margin-right: 5px; display: flex; align-items: center; justify-content: center;">${itemTypeIcon}</span>
+                        ${colorIndicator}
+                        ${titleDisplay}
+                    </div>
                     <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
                 `;
 
                 resultItem.addEventListener('click', () => {
                     switchToCategory(categoryId);
                     setTimeout(() => {
-                        navigateToNote(result.element);
+                        navigateToItem(result);
                     }, 300);
                 });
 
@@ -770,15 +868,24 @@ function addSearchFeature() {
             if (selectButton) {
                 selectButton.click();
             } else {
-
                 const allNoteContainers = document.querySelectorAll('.notes-container');
                 allNoteContainers.forEach(container => {
+                    container.style.display = 'none';
+                });
+
+                const allTodoContainers = document.querySelectorAll('[id^="todos-"]');
+                allTodoContainers.forEach(container => {
                     container.style.display = 'none';
                 });
 
                 const selectedNotesContainer = document.getElementById(`notes-${categoryId}`);
                 if (selectedNotesContainer) {
                     selectedNotesContainer.style.display = 'block';
+                }
+
+                const selectedTodosContainer = document.getElementById(`todos-${categoryId}`);
+                if (selectedTodosContainer) {
+                    selectedTodosContainer.style.display = 'block';
                 }
 
                 const allCategories = document.querySelectorAll('.category-item');
@@ -796,22 +903,28 @@ function addSearchFeature() {
         }
     }
 
-    function navigateToNote(noteElement) {
-        const x = parseFloat(noteElement.getAttribute('data-x')) || 0;
-        const y = parseFloat(noteElement.getAttribute('data-y')) || 0;
+    function navigateToItem(result) {
+        const element = result.element;
+        const x = parseFloat(element.getAttribute('data-x')) || 0;
+        const y = parseFloat(element.getAttribute('data-y')) || 0;
 
-        const targetX = (x - (viewportWidth / 2) + (noteElement.offsetWidth / 2)) * zoomLevel;
-        const targetY = (y - (viewportHeight / 2) + (noteElement.offsetHeight / 2)) * zoomLevel;
+        const targetX = (x - (viewportWidth / 2) + (element.offsetWidth / 2)) * zoomLevel;
+        const targetY = (y - (viewportHeight / 2) + (element.offsetHeight / 2)) * zoomLevel;
 
         animateScrollTo(targetX, targetY);
 
         let flashCount = 0;
-        const originalShadow = noteElement.style.boxShadow;
+        const originalShadow = result.originalBoxShadow || '0 4px 15px rgba(93, 63, 211, 0.1)';
+
+        const highlightColor = result.type === 'todo'
+            ? getHighlightColorForTodo(element)
+            : 'rgba(93, 63, 211, 0.7)';
+
         const flashInterval = setInterval(() => {
             if (flashCount % 2 === 0) {
-                noteElement.style.boxShadow = '0 0 0 5px rgba(93, 63, 211, 0.7)';
+                element.style.boxShadow = `0 0 0 5px ${highlightColor}`;
             } else {
-                noteElement.style.boxShadow = originalShadow;
+                element.style.boxShadow = originalShadow;
             }
 
             flashCount++;
@@ -822,15 +935,15 @@ function addSearchFeature() {
     }
 
     function clearHighlights() {
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
         const notes = document.querySelectorAll('.note-section');
         notes.forEach(note => {
             note.style.boxShadow = '0 4px 15px rgba(93, 63, 211, 0.1)';
         });
 
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        const todos = document.querySelectorAll('.todo-section');
+        todos.forEach(todo => {
+            todo.style.boxShadow = '0 4px 15px rgba(93, 63, 211, 0.1)';
+        });
     }
 
     function escapeRegExp(string) {
@@ -857,6 +970,67 @@ function addSearchFeature() {
         searchAllToggle: searchAllCheckbox,
         search: performSearch
     };
+}
+
+function integrateNewFeatures() {
+    let minimap = document.getElementById('canvas-minimap');
+    if (!minimap) {
+        minimap = addMinimap();
+    }
+
+    const search = addSearchFeature();
+
+    const originalHandleMouseMove = handleMouseMove;
+    window.handleMouseMove = function (e) {
+        originalHandleMouseMove(e);
+        debouncedUpdateMinimap();
+    };
+
+    const originalHandleMouseWheelZoom = handleMouseWheelZoom;
+    window.handleMouseWheelZoom = function (event) {
+        originalHandleMouseWheelZoom(event);
+        debouncedUpdateMinimap();
+    };
+
+    const originalGetNotes = window.getNotes;
+    window.getNotes = async function (categoryId) {
+        await originalGetNotes(categoryId);
+        updateMinimap();
+    };
+
+    const originalGetTodos = window.getTodos;
+    window.getTodos = async function (categoryId) {
+        await originalGetTodos(categoryId);
+        updateMinimap();
+    };
+
+    const originalLoadImageById = window.loadImageById;
+    window.loadImageById = async function (imageId, categoryId) {
+        await originalLoadImageById(imageId, categoryId);
+        updateMinimap();
+    };
+
+    const originalDeleteNotes = window.deleteNotes;
+    window.deleteNotes = async function (noteId) {
+        await originalDeleteNotes(noteId);
+        updateMinimap();
+    };
+
+    const originalDeleteTodo = window.deleteTodo;
+    window.deleteTodo = async function (todoId) {
+        await originalDeleteTodo(todoId);
+        updateMinimap();
+    };
+
+    canvasContainer.addEventListener('scroll', debouncedUpdateMinimap);
+
+    const resizableElements = document.querySelectorAll('.resize-drag');
+    resizableElements.forEach(element => {
+        const observer = new MutationObserver(debouncedUpdateMinimap);
+        observer.observe(element, { attributes: true, attributeFilter: ['style', 'data-x', 'data-y'] });
+    });
+    setInterval(updateMinimap, 0);
+    setTimeout(updateMinimap, 500);
 }
 
 function integrateNewFeatures() {
@@ -1052,8 +1226,8 @@ function adjustNotesAndImagesPositioning() {
 
                 notesElement.innerHTML = `
                     <section class="note-section resize-drag" ${positionStyle} ${positionData}>
-                        <textarea class="updateLiveTitle" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                        <textarea class="updateLiveContent" data-note-id="${notes._id}">${notes.content}</textarea>
+                        <textarea class="updateLiveTitle" maxlength="60" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                        <textarea class="updateLiveContent" maxlength="10000" data-note-id="${notes._id}">${notes.content}</textarea>
                         <div class="delete-speech">
                             <button id="custom"> ⫶ </button>
                             <button id="speech">Speech</button>
@@ -1231,37 +1405,37 @@ function updateTodoPositioning() {
 
 function adjustTodosPositioning() {
     const originalGetTodos = window.getTodos;
-    
-    window.getTodos = async function(categoryId) {
+
+    window.getTodos = async function (categoryId) {
         try {
             const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
             const data = await response.json();
             const todosContainer = document.getElementById(`todos-${categoryId}`);
-            
+
             if (todosContainer) {
                 const existingTodos = todosContainer.querySelectorAll('.todo-section');
                 existingTodos.forEach(item => item.remove());
             }
-            
+
             if (!data.success) {
                 console.log('Error', data.message);
                 return;
             }
-            
+
             data.todos.forEach(function (todo) {
                 const todoElement = document.createElement('section');
                 const isNewTodo = !todo.position || (!todo.position.canvasX && !todo.position.x);
                 let x, y;
-                
+
                 if (isNewTodo) {
                     const notePostsContainer = document.getElementById('notePosts');
                     if (notePostsContainer) {
                         x = notePostsContainer.offsetWidth / 2 - 125;
                         y = notePostsContainer.offsetHeight / 2 - 125;
-                        
-                        if (typeof canvasContainer !== 'undefined' && 
-                            typeof viewportWidth !== 'undefined' && 
-                            typeof viewportHeight !== 'undefined' && 
+
+                        if (typeof canvasContainer !== 'undefined' &&
+                            typeof viewportWidth !== 'undefined' &&
+                            typeof viewportHeight !== 'undefined' &&
                             typeof zoomLevel !== 'undefined') {
                             setTimeout(() => {
                                 canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
@@ -1276,21 +1450,21 @@ function adjustTodosPositioning() {
                     x = todo.position?.canvasX || todo.position?.x || 0;
                     y = todo.position?.canvasY || todo.position?.y || 0;
                 }
-                
+
                 const positionStyle = `style="width: ${todo.position?.width || 300}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
                 const positionData = `data-x="${x}" data-y="${y}"`;
-                
+
                 todoElement.innerHTML = `
                 <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
                     <div class="todo-header">
-                        <input type="text" class="todo-title" value="${todo.text}" data-todo-id="${todo._id}">
+                        <input type="text" class="todo-title" maxlength="60" value="${todo.text}" data-todo-id="${todo._id}">
                     </div>
                   <div class="todo-item-container" data-todo-id="${todo._id}">
                     ${todo.subTodos && todo.subTodos.length > 0 ?
                         todo.subTodos.map((subTodo, index) => `
                         <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
                             <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
-                            <input type="text" class="subtodo-text" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
+                            <input type="text" class="subtodo-text" maxlength="60" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
                             <button class="delete-subtodo">✕</button>
                         </div>
                       `).join('') :
@@ -1303,17 +1477,17 @@ function adjustTodosPositioning() {
                     </div>
                 </section>
               `;
-                
+
                 if (todosContainer) {
                     todosContainer.appendChild(todoElement);
-                    
+
                     const titleInput = todoElement.querySelector('.todo-title');
                     if (titleInput) {
                         titleInput.addEventListener('input', function () {
                             updateTodoText(todo._id, this.value);
                         });
                     }
-                    
+
                     const subtodoCheckboxes = todoElement.querySelectorAll('.subtodo-checkbox');
                     subtodoCheckboxes.forEach((checkbox, index) => {
                         checkbox.addEventListener('change', function () {
@@ -1329,14 +1503,14 @@ function adjustTodosPositioning() {
                             }
                         });
                     });
-                    
+
                     const subtodoTexts = todoElement.querySelectorAll('.subtodo-text');
                     subtodoTexts.forEach((textInput, index) => {
                         textInput.addEventListener('input', function () {
                             updateSubTodoText(todo._id, index, this.value);
                         });
                     });
-                    
+
                     const deleteSubtodoButtons = todoElement.querySelectorAll('.delete-subtodo');
                     deleteSubtodoButtons.forEach((button, index) => {
                         button.addEventListener('click', function () {
@@ -1374,12 +1548,13 @@ function initInfinityCanvas() {
 }
 
 function setupSpeechRecognition() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        ntf('Speech recognition is not supported in your browser.', 'error');
-        return;
-    }
     document.addEventListener('click', function (event) {
         if (event.target && event.target.id === 'speech') {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                ntf('Speech recognition is not supported in your browser.', 'error');
+                return;
+            }
+
             const noteSection = event.target.closest('.note-section');
             if (noteSection) {
                 const contentTextarea = noteSection.querySelector('.updateLiveContent');

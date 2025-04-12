@@ -4,6 +4,8 @@ const passport = require('passport');
 const verification = require('../models/verification');
 const Category = require('../models/category');
 const Notes = require('../models/notes');
+const Todo = require('../models/todo');
+const Image = require('../models/image');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../config/email');
 require('dotenv').config();
 
@@ -13,9 +15,29 @@ const generateVerificationCode = () => {
 
 const signUp = async (req, res) => {
     try {
-        const { username, email, password } = req.body
-        const existingAccount = await account.findOne({ username });
+        const { username, email, password } = req.body;
 
+        const usernameValid = typeof username === 'string' && username.length >= 3 && username.length <= 20;
+        const emailValid = typeof email === 'string' && /^[\w.-]+@[\w.-]+\.\w+$/.test(email);
+        const passwordValid =
+            typeof password === 'string' &&
+            /.{8,}/.test(password) &&
+            /[A-Z]/.test(password) &&
+            /[a-z]/.test(password) &&
+            /[0-9]/.test(password) &&
+            /[^A-Za-z0-9]/.test(password);
+
+        if (!usernameValid || !emailValid || !passwordValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid input. Make sure all fields are correctly formatted and meet requirements.'
+            });
+        }
+
+        const cleanUsername = username.trim().replace(/[^\w.-]/g, '');
+        const cleanEmail = email.trim().toLowerCase();
+
+        const existingAccount = await account.findOne({ username: cleanUsername });
         if (existingAccount) {
             return res.status(400).json({
                 success: false,
@@ -23,7 +45,7 @@ const signUp = async (req, res) => {
             });
         }
 
-        const existingEmail = await account.findOne({ email });
+        const existingEmail = await account.findOne({ email: cleanEmail });
         if (existingEmail) {
             return res.status(400).json({
                 success: false,
@@ -31,26 +53,25 @@ const signUp = async (req, res) => {
             });
         }
 
-        const hashEncoded = parseInt(process.env.BCRYPT_ROUND)
+        const hashEncoded = parseInt(process.env.BCRYPT_ROUND);
         const hash = await bcrypt.hash(password, hashEncoded);
 
         const newAccount = new account({
-            username,
-            email,
+            username: cleanUsername,
+            email: cleanEmail,
             password: hash,
             isVerified: false
         });
 
         const verificationCode = generateVerificationCode();
         const newVerification = new verification({
-            email,
+            email: cleanEmail,
             code: verificationCode
         });
 
         await newVerification.save();
 
-        const emailSent = await sendVerificationEmail(email, verificationCode);
-
+        const emailSent = await sendVerificationEmail(cleanEmail, verificationCode);
         if (!emailSent) {
             return res.status(500).json({
                 success: false,
@@ -64,7 +85,7 @@ const signUp = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Account created! Please check your email for verification code',
-            email
+            email: cleanEmail
         });
     } catch (err) {
         console.error('Failed to create account:', err);
@@ -121,10 +142,15 @@ const signIn = async (req, res) => {
         const { username, password } = req.body;
         const existingAccount = await account.findOne({ username });
 
-        if (!existingAccount) {
+        if (
+            typeof username !== 'string' ||
+            typeof password !== 'string' ||
+            username.length < 3 || username.length > 20 ||
+            password.length < 6 || password.length > 24
+        ) {
             return res.status(400).json({
                 success: false,
-                message: 'Account does not exist'
+                message: 'Invalid input format'
             });
         }
 
@@ -436,24 +462,26 @@ const deleteAccount = async (req, res) => {
                 message: 'User not logged in'
             });
         }
-        
+
         const userId = req.session.user.id;
-        
+
         const deletedCategories = await Category.deleteMany({ userId });
-        
+
         const deletedNotes = await Notes.deleteMany({ userId });
-        
+        const deletedTodos = await Todo.deleteMany({ userId });
+        const deletedImages = await Image.deleteMany({ userId });
+
         const deletedUser = await account.findByIdAndDelete(userId);
-        
+
         if (!deletedUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
         }
-        
+
         req.session.destroy();
-        
+
         console.log('Account Deleted:', deletedUser);
         res.status(200).json({
             success: true,
@@ -476,37 +504,37 @@ const changePassword = async (req, res) => {
                 message: 'User not logged in'
             });
         }
-        
+
         const { currentPassword, newPassword } = req.body;
         const userId = req.session.user.id;
-        
+
         // Find the user account
         const userAccount = await account.findById(userId);
-        
+
         if (!userAccount) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
-        
+
         // Verify current password
         const isPasswordValid = await bcrypt.compare(currentPassword, userAccount.password);
-        
+
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 message: 'Current password is incorrect'
             });
         }
-        
+
         // Hash the new password
         const hashEncoded = parseInt(process.env.BCRYPT_ROUND);
         const hash = await bcrypt.hash(newPassword, hashEncoded);
-        
+
         // Update the password
         await account.findByIdAndUpdate(userId, { password: hash });
-        
+
         res.status(200).json({
             success: true,
             message: 'Password changed successfully'
