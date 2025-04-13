@@ -523,7 +523,7 @@ body {
 #search-container {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 150px;
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -535,6 +535,7 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    transition: right 0.3s ease;
 }
 
 #search-input {
@@ -557,7 +558,7 @@ body {
 #search-results {
     position: fixed;
     top: 60px;
-    right: 20px;
+    right: 150px;
     width: 300px;
     max-height: 400px;
     overflow-y: auto;
@@ -574,7 +575,9 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    transition: right 0.3s ease;
 }
+
 
 #search-total-count {
     padding: 8px;

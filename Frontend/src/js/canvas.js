@@ -35,21 +35,29 @@ toggleButton.addEventListener('click', () => {
     updateControlPositions();
 });
 toggleButton.innerHTML = '←';
+
 toolToggleBtn.addEventListener('click', () => {
+    const search = document.getElementById('search-container');
+    const searchResults = document.getElementById('search-results');
+
     toolSidebar.classList.toggle('hidden');
     toolSidebarVisible = !toolSidebar.classList.contains('hidden');
-
+    
     if (toolSidebarVisible) {
         toolToggleBtn.innerHTML = '→';
+        search.style.right = '150px';
+        searchResults.style.right = '150px';
     } else {
         toolToggleBtn.innerHTML = '←';
+        search.style.right = '20px';
+        searchResults.style.right = '20px';
     }
 
     toolSidebar.style.transition = 'transform 0.3s ease';
-
     updateToolSidebarPosition();
 });
 toolToggleBtn.innerHTML = '→';
+
 function updateControlPositions() {
     if (minimapVisible) {
         minimap.style.transform = sidebarVisible ? 'translateX(0)' : 'translateX(-300px)';
@@ -572,6 +580,11 @@ function animateScrollTo(targetX, targetY) {
 
 
 function addSearchFeature() {
+
+    const existingSearch = document.getElementById('search-container');
+    if (existingSearch) {
+        existingSearch.remove();
+    }
     searchContainer = document.createElement('div');
     searchContainer.id = 'search-container';
     document.body.appendChild(searchContainer);
@@ -1547,109 +1560,11 @@ function initInfinityCanvas() {
     updateNotification();
 }
 
-function setupSpeechRecognition() {
-    document.addEventListener('click', function (event) {
-        if (event.target && event.target.id === 'speech') {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                ntf('Speech recognition is not supported in your browser.', 'error');
-                return;
-            }
-
-            const noteSection = event.target.closest('.note-section');
-            if (noteSection) {
-                const contentTextarea = noteSection.querySelector('.updateLiveContent');
-                if (contentTextarea) {
-                    toggleSpeechRecognition(contentTextarea, event.target);
-                }
-            }
-        }
-    });
-}
-
-const recognitionInstances = {};
-
-function toggleSpeechRecognition(contentTextarea, button) {
-    const noteId = contentTextarea.getAttribute('data-note-id');
-
-    if (recognitionInstances[noteId]) {
-        recognitionInstances[noteId].stop();
-        recognitionInstances[noteId] = null;
-        button.textContent = 'Speech';
-        button.classList.remove('recording');
-        return;
-    }
-
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        ntf('Speech recognition is not supported in your browser.', 'error');
-        return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    let finalTranscript = contentTextarea.value || '';
-    let cursorPosition = contentTextarea.selectionStart;
-
-    button.textContent = 'Stop';
-    button.classList.add('recording');
-
-    recognitionInstances[noteId] = recognition;
-
-    recognition.onresult = function (event) {
-        let interimTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-
-            if (event.results[i].isFinal) {
-                finalTranscript += ' ' + transcript;
-                updateNotesContent(noteId, finalTranscript);
-            } else {
-                interimTranscript += transcript;
-            }
-        }
-
-        const content = finalTranscript + interimTranscript;
-        contentTextarea.value = content;
-
-        contentTextarea.selectionStart = content.length;
-        contentTextarea.selectionEnd = content.length;
-    };
-
-    recognition.onerror = function (event) {
-        if (event.error === 'no-speech') {
-            ntf('No speech was detected. Please try again.', 'info');
-        } else {
-            ntf('Speech recognition error: ' + event.error, 'error');
-            console.error('Speech recognition error:', event.error);
-        }
-        button.textContent = 'Speech';
-        button.classList.remove('recording');
-        recognitionInstances[noteId] = null;
-    };
-
-    recognition.onend = function () {
-        button.textContent = 'Speech';
-        button.classList.remove('recording');
-        recognitionInstances[noteId] = null;
-    };
-
-    try {
-        recognition.start();
-    } catch (error) {
-        ntf('Error starting speech recognition: ' + error.message, 'error');
-        console.error('Error starting speech recognition:', error);
-        button.textContent = 'Speech';
-        button.classList.remove('recording');
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     initInfinityCanvas();
     setupSpeechRecognition();
 });
 /////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////// NEED FIX search position /////////////////////////

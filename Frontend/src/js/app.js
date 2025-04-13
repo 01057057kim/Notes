@@ -105,9 +105,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
                             textarea.select();
                         }
                     }
-
-                    hiddenTool();
-
+                    
                 }
             }
         } else {
@@ -302,15 +300,33 @@ function hiddenTool() {
     const globaltool = document.getElementById('tool');
     const toggle = document.getElementById('toolToggleSidebar');
     const categoryItems = document.querySelectorAll('.category-item');
+    const search = document.getElementById('search-container');
+    const searchResults = document.getElementById('search-results');
+    const toolSidebar = document.getElementById('tool-sidebar');
+
 
     if (categoryItems.length > 0) {
         globaltool.style.display = 'block';
         toggle.style.display = 'block';
+        search.style.display = 'block';
         globaltool.dataset.categoryId = selectedCategoryId;
+        
+        if (toolSidebar && !toolSidebar.classList.contains('hidden')) {
+            search.style.right = '20px';
+            searchResults.style.right = '20px';
+        } else {
+            search.style.right = '150px';
+            searchResults.style.right = '150px';
+        }
     } else {
         globaltool.style.display = 'none';
         toggle.style.display = 'none';
+        search.style.display = 'none';
+        search.style.right = '20px';
+        searchResults.style.right = '20px';
     }
+    search.style.transition = 'right 0.3s ease';
+    searchResults.style.transition = 'right 0.3s ease';
 }
 
 
