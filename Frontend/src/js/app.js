@@ -55,28 +55,35 @@ document.getElementById('newCategory').addEventListener('click', async function 
                 categoryName: uniqueCategoryName,
             })
         });
-
         const data = await response.json();
-
         if (data.success) {
             console.log('Category created');
 
-            const categoriesData = await getCategory();
+            const toolSidebar = document.getElementById('tool-sidebar');
+            if (toolSidebar) {
+                toolSidebar.classList.remove('hidden');
+                toolSidebarVisible = true;
 
+                const search = document.getElementById('search-container');
+                const searchResults = document.getElementById('search-results');
+                if (search) search.style.right = '150px';
+                if (searchResults) searchResults.style.right = '150px';
+                
+                const toolToggleBtn = document.querySelector('#toolToggleSidebar button');
+                if (toolToggleBtn) toolToggleBtn.innerHTML = '→';
+            }
+  
+            const categoriesData = await getCategory();
+            
             if (categoriesData && categoriesData.categories && categoriesData.categories.length > 0) {
                 const newCategory = categoriesData.categories.find(cat =>
                     cat.categoryName === uniqueCategoryName);
-
+                
                 if (newCategory) {
                     selectedCategoryId = newCategory._id;
-
-                    const allNoteContainers = document.querySelectorAll('.notes-container');
-                    allNoteContainers.forEach(container => {
-                        container.style.display = 'none';
-                    });
-
-                    const allTodoContainers = document.querySelectorAll('.todos-container');
-                    allTodoContainers.forEach(container => {
+                    
+                    const allContainers = document.querySelectorAll('.notes-container, .todos-container');
+                    allContainers.forEach(container => {
                         container.style.display = 'none';
                     });
 
@@ -84,7 +91,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
                     if (selectedNotesContainer) {
                         selectedNotesContainer.style.display = 'block';
                     }
-
+                    
                     const selectedTodosContainer = document.getElementById(`todos-${selectedCategoryId}`);
                     if (selectedTodosContainer) {
                         selectedTodosContainer.style.display = 'block';
@@ -94,11 +101,11 @@ document.getElementById('newCategory').addEventListener('click', async function 
                     allCategories.forEach(item => {
                         item.classList.remove('selected');
                     });
-
+                    
                     const newCategoryItem = document.querySelector(`.updateLiveCategoryName[data-category-id="${selectedCategoryId}"]`).closest('.category-item');
                     if (newCategoryItem) {
                         newCategoryItem.classList.add('selected');
-
+                        
                         const textarea = newCategoryItem.querySelector('.updateLiveCategoryName');
                         if (textarea) {
                             textarea.focus();
@@ -106,6 +113,9 @@ document.getElementById('newCategory').addEventListener('click', async function 
                         }
                     }
                     
+                    
+
+                    hiddenTool();
                 }
             }
         } else {
@@ -113,6 +123,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
         }
     } catch (error) {
         console.log('Error create category', error);
+        ntf('Error creating category', 'error');
     }
 });
 
@@ -219,17 +230,42 @@ async function deleteCategory(id) {
             headers: { 'Content-Type': 'application/json' },
             credentials: "include",
             body: JSON.stringify({ id })
-        })
-        const data = await response.json()
+        });
+        
+        const data = await response.json();
+        
         if (data.success) {
-            getCategory();
+            await getCategory(); 
+            const remainingCategories = document.querySelectorAll('.category-item');
+            
+            if (remainingCategories.length > 0) {
+                if (selectedCategoryId === id) {
+                    const firstCategory = remainingCategories[0];
+                    const newCategoryId = firstCategory.querySelector('.updateLiveCategoryName').dataset.categoryId;
+                    selectedCategoryId = newCategoryId;
+                    firstCategory.classList.add('selected');
+                    
+                    const allContainers = document.querySelectorAll('.notes-container, .todos-container');
+                    allContainers.forEach(container => {
+                        container.style.display = 'none';
+                    });
+                    
+                    const selectedNotesContainer = document.getElementById(`notes-${selectedCategoryId}`);
+                    const selectedTodosContainer = document.getElementById(`todos-${selectedCategoryId}`);
+                    
+                    if (selectedNotesContainer) selectedNotesContainer.style.display = 'block';
+                    if (selectedTodosContainer) selectedTodosContainer.style.display = 'block';
+                }
+            }
+            
             hiddenTool();
         } else {
             ntf('Failed to delete', 'error');
-            console.log(err)
+            console.log(data.message);
         }
     } catch (err) {
-        console.log('Error:', err)
+        console.log('Error:', err);
+        ntf('Error deleting category', 'error');
     }
 }
 
@@ -303,18 +339,23 @@ function hiddenTool() {
     const search = document.getElementById('search-container');
     const searchResults = document.getElementById('search-results');
     const toolSidebar = document.getElementById('tool-sidebar');
-
-
+    
     if (categoryItems.length > 0) {
         globaltool.style.display = 'block';
         toggle.style.display = 'block';
-        search.style.display = 'block';
+        search.style.display = 'flex';
         globaltool.dataset.categoryId = selectedCategoryId;
         
-        if (toolSidebar && !toolSidebar.classList.contains('hidden')) {
-            search.style.right = '20px';
-            searchResults.style.right = '20px';
-        } else {
+
+        if (toolSidebar) {
+            toolSidebar.classList.remove('hidden');
+            toolSidebarVisible = true;
+            
+            const toolToggleBtn = toggle.querySelector('button');
+            if (toolToggleBtn) {
+                toolToggleBtn.innerHTML = '→';
+            }
+            
             search.style.right = '150px';
             searchResults.style.right = '150px';
         }
@@ -322,9 +363,9 @@ function hiddenTool() {
         globaltool.style.display = 'none';
         toggle.style.display = 'none';
         search.style.display = 'none';
-        search.style.right = '20px';
-        searchResults.style.right = '20px';
+        searchResults.style.display = 'none';
     }
+    
     search.style.transition = 'right 0.3s ease';
     searchResults.style.transition = 'right 0.3s ease';
 }

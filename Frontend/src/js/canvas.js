@@ -39,7 +39,7 @@ toggleButton.innerHTML = '←';
 toolToggleBtn.addEventListener('click', () => {
     const search = document.getElementById('search-container');
     const searchResults = document.getElementById('search-results');
-
+    
     toolSidebar.classList.toggle('hidden');
     toolSidebarVisible = !toolSidebar.classList.contains('hidden');
     
@@ -52,11 +52,20 @@ toolToggleBtn.addEventListener('click', () => {
         search.style.right = '20px';
         searchResults.style.right = '20px';
     }
-
+    
     toolSidebar.style.transition = 'transform 0.3s ease';
     updateToolSidebarPosition();
 });
 toolToggleBtn.innerHTML = '→';
+
+function updateSearchResultsPosition() {
+    const search = document.getElementById('search-container');
+    const searchResults = document.getElementById('search-results');
+    
+    if (search && searchResults) {
+        searchResults.style.right = search.style.right;
+    }
+}
 
 function updateControlPositions() {
     if (minimapVisible) {
@@ -613,6 +622,31 @@ function addSearchFeature() {
     resultsContainer.id = 'search-results';
     document.body.appendChild(resultsContainer);
 
+    const toolSidebar = document.getElementById('tool-sidebar');
+    if (toolSidebar && !toolSidebar.classList.contains('hidden')) {
+        searchContainer.style.right = '20px';
+        resultsContainer.style.right = '20px';
+    } else {
+        searchContainer.style.right = '150px';
+        resultsContainer.style.right = '150px';
+    }
+
+    function updateSearchResultsPosition() {
+        resultsContainer.style.right = searchContainer.style.right;
+    }
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'style') {
+                updateSearchResultsPosition();
+            }
+        });
+    });
+    
+    observer.observe(searchContainer, { attributes: true, attributeFilter: ['style'] });
+
+    window.addEventListener('resize', updateSearchResultsPosition);
+
     searchButton.addEventListener('click', performSearch);
 
     searchInput.addEventListener('keyup', function (e) {
@@ -745,6 +779,7 @@ function addSearchFeature() {
         });
 
         displayResults(results, searchTerm);
+        updateSearchResultsPosition();
     }
 
     function getHighlightColorForTodo(todoElement) {
@@ -872,6 +907,7 @@ function addSearchFeature() {
         });
 
         resultsContainer.style.display = 'block';
+        updateSearchResultsPosition();
     }
 
     function switchToCategory(categoryId) {
@@ -974,6 +1010,9 @@ function addSearchFeature() {
             searchVisible = !searchVisible;
             searchContainer.style.display = searchVisible ? 'flex' : 'none';
             console.log("Search toggled:", searchVisible);
+            if (searchVisible) {
+                updateSearchResultsPosition();
+            }
         }
     }, true)
     return {
