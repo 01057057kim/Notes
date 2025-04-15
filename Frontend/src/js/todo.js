@@ -346,3 +346,160 @@ window.removeSubTodo = async function (todoId, subTodoIndex) {
     }
 };
 
+function updateTodoPositioning() {
+    window.saveTodoPosition = async function (todoId, element) {
+        try {
+            const x = parseFloat(element.getAttribute('data-x')) || 0;
+            const y = parseFloat(element.getAttribute('data-y')) || 0;
+            const width = parseFloat(element.style.width);
+            const height = parseFloat(element.style.height);
+            const position = {
+                x,
+                y,
+                width,
+                height,
+                canvasX: x,
+                canvasY: y
+            };
+
+            const response = await fetch('/todo/updatetodoposition', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ todoId, position })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('Success update todos position');
+            } else {
+                console.log('Failed update todos position:', data.message);
+            }
+        } catch (err) {
+            console.log('Update todos failed:', err);
+        }
+    }
+}
+
+function adjustTodosPositioning() {
+    const originalGetTodos = window.getTodos;
+
+    window.getTodos = async function (categoryId) {
+        try {
+            const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
+            const data = await response.json();
+            const todosContainer = document.getElementById(`todos-${categoryId}`);
+
+            if (todosContainer) {
+                const existingTodos = todosContainer.querySelectorAll('.todo-section');
+                existingTodos.forEach(item => item.remove());
+            }
+
+            if (!data.success) {
+                console.log('Error', data.message);
+                return;
+            }
+
+            data.todos.forEach(function (todo) {
+                const todoElement = document.createElement('section');
+                const isNewTodo = !todo.position || (!todo.position.canvasX && !todo.position.x);
+                let x, y;
+
+                if (isNewTodo) {
+                    const notePostsContainer = document.getElementById('notePosts');
+                    if (notePostsContainer) {
+                        x = notePostsContainer.offsetWidth / 2 - 125;
+                        y = notePostsContainer.offsetHeight / 2 - 125;
+
+                        if (typeof canvasContainer !== 'undefined' &&
+                            typeof viewportWidth !== 'undefined' &&
+                            typeof viewportHeight !== 'undefined' &&
+                            typeof zoomLevel !== 'undefined') {
+                            setTimeout(() => {
+                                canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                                canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                            }, 100);
+                        }
+                    } else {
+                        x = 0;
+                        y = 0;
+                    }
+                } else {
+                    x = todo.position?.canvasX || todo.position?.x || 0;
+                    y = todo.position?.canvasY || todo.position?.y || 0;
+                }
+
+                const positionStyle = `style="width: ${todo.position?.width || 300}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
+                const positionData = `data-x="${x}" data-y="${y}"`;
+
+                todoElement.innerHTML = `
+                <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
+                    <div class="todo-header">
+                        <input type="text" class="todo-title" maxlength="60" value="${todo.text}" data-todo-id="${todo._id}">
+                    </div>
+                  <div class="todo-item-container" data-todo-id="${todo._id}">
+                    ${todo.subTodos && todo.subTodos.length > 0 ?
+                        todo.subTodos.map((subTodo, index) => `
+                        <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
+                            <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
+                            <input type="text" class="subtodo-text" maxlength="60" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
+                            <button class="delete-subtodo">✕</button>
+                        </div>
+                      `).join('') :
+                        '<div class="no-subtodos">Add tasks below</div>'
+                    }
+                  </div>
+                    <div class="todo-actions">
+                        <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add Task</button>
+                        <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
+                    </div>
+                </section>
+              `;
+
+                if (todosContainer) {
+                    todosContainer.appendChild(todoElement);
+
+                    const titleInput = todoElement.querySelector('.todo-title');
+                    if (titleInput) {
+                        titleInput.addEventListener('input', function () {
+                            updateTodoText(todo._id, this.value);
+                        });
+                    }
+
+                    const subtodoCheckboxes = todoElement.querySelectorAll('.subtodo-checkbox');
+                    subtodoCheckboxes.forEach((checkbox, index) => {
+                        checkbox.addEventListener('change', function () {
+                            updateSubTodoStatus(todo._id, index, this.checked);
+
+                            const textInput = this.closest('.todo-item').querySelector('.subtodo-text');
+                            if (textInput) {
+                                if (this.checked) {
+                                    textInput.style.textDecoration = 'line-through';
+                                } else {
+                                    textInput.style.textDecoration = 'none';
+                                }
+                            }
+                        });
+                    });
+
+                    const subtodoTexts = todoElement.querySelectorAll('.subtodo-text');
+                    subtodoTexts.forEach((textInput, index) => {
+                        textInput.addEventListener('input', function () {
+                            updateSubTodoText(todo._id, index, this.value);
+                        });
+                    });
+
+                    const deleteSubtodoButtons = todoElement.querySelectorAll('.delete-subtodo');
+                    deleteSubtodoButtons.forEach((button, index) => {
+                        button.addEventListener('click', function () {
+                            removeSubTodo(todo._id, index);
+                            this.closest('.todo-item').remove();
+                        });
+                    });
+                }
+            });
+        } catch (err) {
+            console.error("Error fetching todos:", err);
+        }
+    };
+}

@@ -39,10 +39,10 @@ toggleButton.innerHTML = '←';
 toolToggleBtn.addEventListener('click', () => {
     const search = document.getElementById('search-container');
     const searchResults = document.getElementById('search-results');
-    
+
     toolSidebar.classList.toggle('hidden');
     toolSidebarVisible = !toolSidebar.classList.contains('hidden');
-    
+
     if (toolSidebarVisible) {
         toolToggleBtn.innerHTML = '→';
         search.style.right = '150px';
@@ -52,16 +52,15 @@ toolToggleBtn.addEventListener('click', () => {
         search.style.right = '20px';
         searchResults.style.right = '20px';
     }
-    
+
     toolSidebar.style.transition = 'transform 0.3s ease';
-    updateToolSidebarPosition();
 });
 toolToggleBtn.innerHTML = '→';
 
 function updateSearchResultsPosition() {
     const search = document.getElementById('search-container');
     const searchResults = document.getElementById('search-results');
-    
+
     if (search && searchResults) {
         searchResults.style.right = search.style.right;
     }
@@ -357,9 +356,6 @@ function handleShortcut(e) {
 
 }
 
-
-
-
 const originalUploadImage = window.uploadImage;
 window.uploadImage = async function (categoryId) {
     if (originalUploadImage) {
@@ -367,28 +363,6 @@ window.uploadImage = async function (categoryId) {
     }
 };
 
-const originalDeleteNotes = window.deleteNotes;
-window.deleteNotes = async function (noteId) {
-    if (originalDeleteNotes) {
-        await originalDeleteNotes(noteId);
-    } else {
-        try {
-            const response = await fetch(`/notes/deletenotes?noteId=${noteId}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            const data = await response.json();
-            if (data.success) {
-                const noteElement = document.querySelector(`[data-note-id="${noteId}"]`).closest('.note-section');
-                if (noteElement) {
-                    noteElement.remove();
-                }
-            }
-        } catch (err) {
-            console.error("Error deleting note:", err);
-        }
-    }
-};
 
 function addMinimap() {
     if (document.getElementById('canvas-minimap')) {
@@ -463,7 +437,7 @@ function updateMinimap() {
     const notes = document.querySelectorAll('.note-section');
     const images = document.querySelectorAll('.image-container');
     const todos = document.querySelectorAll('.todo-section');
-
+    const links = document.querySelectorAll('.link-section');
     ///////////////////////////////////////////////////////////////////////////////
     while (minimap.querySelector('.minimap-note-indicator')) {
         minimap.querySelector('.minimap-note-indicator').remove();
@@ -524,6 +498,25 @@ function updateMinimap() {
         todoIndicator.style.pointerEvents = 'none';
 
         fragment.appendChild(todoIndicator);
+    });
+
+    links.forEach(link => {
+        const x = (parseFloat(link.getAttribute('data-x')) || 0) * scaleX;
+        const y = (parseFloat(link.getAttribute('data-y')) || 0) * scaleY;
+        const w = link.offsetWidth * scaleX;
+        const h = link.offsetHeight * scaleY;
+
+        const linkIndicator = document.createElement('div');
+        linkIndicator.className = 'minimap-note-indicator';
+        linkIndicator.style.position = 'absolute';
+        linkIndicator.style.transform = `translate(${x}px, ${y}px)`;
+        linkIndicator.style.width = w + 'px';
+        linkIndicator.style.height = h + 'px';
+        linkIndicator.style.backgroundColor = '#000000';
+        linkIndicator.style.opacity = '0.6';
+        linkIndicator.style.pointerEvents = 'none';
+
+        fragment.appendChild(linkIndicator);
     });
 
     images.forEach(img => {
@@ -635,14 +628,14 @@ function addSearchFeature() {
         resultsContainer.style.right = searchContainer.style.right;
     }
 
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
             if (mutation.attributeName === 'style') {
                 updateSearchResultsPosition();
             }
         });
     });
-    
+
     observer.observe(searchContainer, { attributes: true, attributeFilter: ['style'] });
 
     window.addEventListener('resize', updateSearchResultsPosition);
@@ -1056,6 +1049,12 @@ function integrateNewFeatures() {
         updateMinimap();
     };
 
+    const originalGetLink = window.getLink;
+    window.getLink = async function (categoryId) {
+        await originalGetLink(categoryId);
+        updateMinimap();
+    };
+
     const originalLoadImageById = window.loadImageById;
     window.loadImageById = async function (imageId, categoryId) {
         await originalLoadImageById(imageId, categoryId);
@@ -1074,58 +1073,9 @@ function integrateNewFeatures() {
         updateMinimap();
     };
 
-    canvasContainer.addEventListener('scroll', debouncedUpdateMinimap);
-
-    const resizableElements = document.querySelectorAll('.resize-drag');
-    resizableElements.forEach(element => {
-        const observer = new MutationObserver(debouncedUpdateMinimap);
-        observer.observe(element, { attributes: true, attributeFilter: ['style', 'data-x', 'data-y'] });
-    });
-    setInterval(updateMinimap, 0);
-    setTimeout(updateMinimap, 500);
-}
-
-function integrateNewFeatures() {
-    let minimap = document.getElementById('canvas-minimap');
-    if (!minimap) {
-        minimap = addMinimap();
-    }
-
-    const search = addSearchFeature();
-
-    const originalHandleMouseMove = handleMouseMove;
-    window.handleMouseMove = function (e) {
-        originalHandleMouseMove(e);
-        debouncedUpdateMinimap();
-    };
-
-    const originalHandleMouseWheelZoom = handleMouseWheelZoom;
-    window.handleMouseWheelZoom = function (event) {
-        originalHandleMouseWheelZoom(event);
-        debouncedUpdateMinimap();
-    };
-
-    const originalGetNotes = window.getNotes;
-    window.getNotes = async function (categoryId) {
-        await originalGetNotes(categoryId);
-        updateMinimap();
-    };
-
-    const originalGetTodos = window.getTodos;
-    window.getTodos = async function (categoryId) {
-        await originalGetTodos(categoryId);
-        updateMinimap();
-    };
-
-    const originalLoadImageById = window.loadImageById;
-    window.loadImageById = async function (imageId, categoryId) {
-        await originalLoadImageById(imageId, categoryId);
-        updateMinimap();
-    };
-
-    const originalDeleteNotes = window.deleteNotes;
-    window.deleteNotes = async function (noteId) {
-        await originalDeleteNotes(noteId);
+    const originalDeleteLink = window.deleteLink;
+    window.deleteLink = async function (linkId) {
+        await originalDeleteLink(linkId);
         updateMinimap();
     };
 
@@ -1139,7 +1089,6 @@ function integrateNewFeatures() {
     setInterval(updateMinimap, 0);
     setTimeout(updateMinimap, 500);
 }
-
 
 const originalInitInfinityCanvas = initInfinityCanvas;
 window.initInfinityCanvas = function () {
@@ -1165,418 +1114,12 @@ function updateNotification() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-function updateNotePositioning() {
-    window.saveNotePosition = async function (noteId, element) {
-        try {
-            const x = parseFloat(element.getAttribute('data-x')) || 0;
-            const y = parseFloat(element.getAttribute('data-y')) || 0;
-            const width = parseFloat(element.style.width);
-            const height = parseFloat(element.style.height);
-            const position = {
-                x: x,
-                y: y,
-                width,
-                height,
-                canvasX: x,
-                canvasY: y
-            };
 
-            const response = await fetch('/notes/updatenotesposition', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ noteId, position })
-            });
 
-            const data = await response.json();
-            if (data.success) {
-                console.log('success update notes position');
-            } else {
-                console.log('failed update notes position:', data.message);
-            }
-        } catch (err) {
-            console.log('update notes failed:', err);
-        }
-    }
 
-    window.saveImagePosition = async function (imageId, element) {
-        try {
-            const x = parseFloat(element.getAttribute('data-x')) || 0;
-            const y = parseFloat(element.getAttribute('data-y')) || 0;
-            const width = parseFloat(element.style.width) || 500;
-            const height = parseFloat(element.style.height) || 281;
-            const position = {
-                x: x,
-                y: y,
-                width,
-                height,
-                canvasX: x,
-                canvasY: y
-            };
 
-            const response = await fetch('/image/updateposition', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ imageId, position })
-            });
 
-            const data = await response.json();
 
-            if (data.success) {
-                console.log('Successfully updated image position');
-            } else {
-                console.error('Failed to update image position:', data.message);
-                ntf(`Failed to save position: ${data.message}`, 'error');
-            }
-        } catch (err) {
-            console.error('Update image position failed:', err);
-        }
-    }
-}
-
-function adjustNotesAndImagesPositioning() {
-    window.originalGetNotes = window.getNotes;
-    window.getNotes = async function (categoryId) {
-        try {
-            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
-            const data = await response.json()
-            const notesContainer = document.getElementById(`notes-${categoryId}`)
-
-            if (notesContainer) {
-                const imageContainers = notesContainer.querySelectorAll('.image-container');
-                const imageElements = Array.from(imageContainers).map(container => container.cloneNode(true));
-
-                const noteSections = notesContainer.querySelectorAll('.note-section');
-                noteSections.forEach(section => section.remove());
-            }
-
-            if (!data.success) {
-                console.log('Error', data.message)
-                return
-            }
-
-            data.notes.forEach(function (notes) {
-                const notesElement = document.createElement('section')
-                const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
-                let x, y;
-
-                if (isNewNote) {
-                    x = notePostsContainer.offsetWidth / 2 - 125;
-                    y = notePostsContainer.offsetHeight / 2 - 125
-                    setTimeout(() => {
-                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
-                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
-                    }, 100);
-                } else {
-                    x = notes.position?.canvasX || notes.position?.x || 0;
-                    y = notes.position?.canvasY || notes.position?.y || 0;
-                }
-
-                const positionStyle = `style="width: ${notes.position?.width || 300}px; height: ${notes.position?.height || 300}px; transform: translate(${x}px, ${y}px);"`;
-                const positionData = `data-x="${x}" data-y="${y}"`;
-
-                notesElement.innerHTML = `
-                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
-                        <textarea class="updateLiveTitle" maxlength="60" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                        <textarea class="updateLiveContent" maxlength="10000" data-note-id="${notes._id}">${notes.content}</textarea>
-                        <div class="delete-speech">
-                            <button id="custom"> ⫶ </button>
-                            <button id="speech">Speech</button>
-                            <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                        </div>
-                    </section>
-                `
-
-                if (notesContainer) {
-                    notesContainer.appendChild(notesElement)
-
-                    const titleTextarea = notesElement.querySelector('.updateLiveTitle');
-                    const contentTextarea = notesElement.querySelector('.updateLiveContent');
-                    const noteSection = notesElement.querySelector('.note-section');
-
-                    if (notes.theme) {
-                        noteSection.style.backgroundColor = notes.theme.bgColor || '';
-
-                        titleTextarea.style.color = notes.theme.titleColor || '';
-                        titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
-                        titleTextarea.style.fontFamily = notes.theme.titleFont || '';
-                        titleTextarea.style.fontSize = notes.theme.titleSize || '';
-
-                        contentTextarea.style.color = notes.theme.contentColor || '';
-                        contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
-                        contentTextarea.style.fontFamily = notes.theme.contentFont || '';
-                        contentTextarea.style.fontSize = notes.theme.contentSize || '';
-
-                        noteSection.classList.add('theme-applied');
-                    }
-
-                    titleTextarea.addEventListener('input', (event) => {
-                        const newValue = event.target.value;
-                        const noteId = event.target.dataset.noteId;
-                        updateNotesTitle(noteId, newValue);
-                    });
-
-                    contentTextarea.addEventListener('input', (event) => {
-                        const newValue = event.target.value;
-                        const noteId = event.target.dataset.noteId;
-                        updateNotesContent(noteId, newValue);
-                    });
-                }
-            });
-
-        } catch (err) {
-            console.log("Error: ", err)
-        }
-    }
-
-    window.originalLoadImageById = window.loadImageById;
-    window.loadImageById = async function (imageId, categoryId) {
-        try {
-            const response = await fetch(`/image/getById?imageId=${imageId}`, {
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (!data.success || !data.image) {
-                console.log('Error loading image:', data.message);
-                return;
-            }
-
-            const image = data.image;
-            const notesContainer = document.getElementById(`notes-${categoryId}`);
-            if (!notesContainer) return;
-
-            const imgContainer = document.createElement('div');
-            imgContainer.classList.add('resize-drag');
-            imgContainer.classList.add('image-container');
-            imgContainer.id = `image-container-${image._id}`;
-            imgContainer.setAttribute('data-category-id', categoryId);
-
-            const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
-            let x, y;
-            const defaultWidth = 500;
-            const defaultHeight = 281;
-
-            if (isNewImage) {
-                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2;
-                y = notePostsContainer.offsetHeight / 2 - defaultHeight / 2;
-
-                setTimeout(() => {
-                    canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
-                    canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
-                }, 100);
-            } else {
-                x = image.position?.canvasX || image.position?.x || 0;
-                y = image.position?.canvasY || image.position?.y || 0;
-            }
-
-            const width = image.position?.width || defaultWidth;
-            const height = image.position?.height || defaultHeight;
-
-            imgContainer.setAttribute('data-x', x);
-            imgContainer.setAttribute('data-y', y);
-            imgContainer.style.position = 'absolute';
-            imgContainer.style.width = `${width}px`;
-            imgContainer.style.height = `${height}px`;
-            imgContainer.style.transform = `translate(${x}px, ${y}px)`;
-
-            const hiddenTextarea = document.createElement('textarea');
-            hiddenTextarea.style.display = 'none';
-            hiddenTextarea.dataset.imageId = image._id;
-            imgContainer.appendChild(hiddenTextarea);
-
-            const img = document.createElement('img');
-            img.src = `data:${image.image.contentType};base64,${image.image.data}`;
-            img.alt = image.name;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.pointerEvents = 'none';
-
-            imgContainer.appendChild(img);
-
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete';
-            deleteButton.classList.add('delete-image-button');
-            deleteButton.style.position = 'absolute';
-            deleteButton.style.bottom = '5px';
-            deleteButton.style.right = '5px';
-            deleteButton.addEventListener('click', function () {
-                deleteImage(image._id);
-                imgContainer.remove();
-            });
-
-            imgContainer.appendChild(deleteButton);
-            notesContainer.appendChild(imgContainer);
-
-            setupImageInteractions(imgContainer, image._id);
-            updateMinimap();
-
-        } catch (error) {
-            console.error('Error loading image by ID:', error);
-        }
-    }
-}
-
-function updateTodoPositioning() {
-    window.saveTodoPosition = async function (todoId, element) {
-        try {
-            const x = parseFloat(element.getAttribute('data-x')) || 0;
-            const y = parseFloat(element.getAttribute('data-y')) || 0;
-            const width = parseFloat(element.style.width);
-            const height = parseFloat(element.style.height);
-            const position = {
-                x,
-                y,
-                width,
-                height,
-                canvasX: x,
-                canvasY: y
-            };
-
-            const response = await fetch('/todo/updatetodoposition', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ todoId, position })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                console.log('Success update todos position');
-            } else {
-                console.log('Failed update todos position:', data.message);
-            }
-        } catch (err) {
-            console.log('Update todos failed:', err);
-        }
-    }
-}
-
-function adjustTodosPositioning() {
-    const originalGetTodos = window.getTodos;
-
-    window.getTodos = async function (categoryId) {
-        try {
-            const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
-            const data = await response.json();
-            const todosContainer = document.getElementById(`todos-${categoryId}`);
-
-            if (todosContainer) {
-                const existingTodos = todosContainer.querySelectorAll('.todo-section');
-                existingTodos.forEach(item => item.remove());
-            }
-
-            if (!data.success) {
-                console.log('Error', data.message);
-                return;
-            }
-
-            data.todos.forEach(function (todo) {
-                const todoElement = document.createElement('section');
-                const isNewTodo = !todo.position || (!todo.position.canvasX && !todo.position.x);
-                let x, y;
-
-                if (isNewTodo) {
-                    const notePostsContainer = document.getElementById('notePosts');
-                    if (notePostsContainer) {
-                        x = notePostsContainer.offsetWidth / 2 - 125;
-                        y = notePostsContainer.offsetHeight / 2 - 125;
-
-                        if (typeof canvasContainer !== 'undefined' &&
-                            typeof viewportWidth !== 'undefined' &&
-                            typeof viewportHeight !== 'undefined' &&
-                            typeof zoomLevel !== 'undefined') {
-                            setTimeout(() => {
-                                canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
-                                canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
-                            }, 100);
-                        }
-                    } else {
-                        x = 0;
-                        y = 0;
-                    }
-                } else {
-                    x = todo.position?.canvasX || todo.position?.x || 0;
-                    y = todo.position?.canvasY || todo.position?.y || 0;
-                }
-
-                const positionStyle = `style="width: ${todo.position?.width || 300}px; height: ${todo.position?.height || 'auto'}px; transform: translate(${x}px, ${y}px);"`;
-                const positionData = `data-x="${x}" data-y="${y}"`;
-
-                todoElement.innerHTML = `
-                <section class="todo-section resize-drag" ${positionStyle} ${positionData} data-todo-id="${todo._id}">
-                    <div class="todo-header">
-                        <input type="text" class="todo-title" maxlength="60" value="${todo.text}" data-todo-id="${todo._id}">
-                    </div>
-                  <div class="todo-item-container" data-todo-id="${todo._id}">
-                    ${todo.subTodos && todo.subTodos.length > 0 ?
-                        todo.subTodos.map((subTodo, index) => `
-                        <div class="todo-item" data-subtodo-id="${subTodo._id || index}">
-                            <input type="checkbox" class="subtodo-checkbox" ${subTodo.completed ? 'checked' : ''}>
-                            <input type="text" class="subtodo-text" maxlength="60" value="${subTodo.text || ''}" style="${subTodo.completed ? 'text-decoration: line-through;' : ''}">
-                            <button class="delete-subtodo">✕</button>
-                        </div>
-                      `).join('') :
-                        '<div class="no-subtodos">Add tasks below</div>'
-                    }
-                  </div>
-                    <div class="todo-actions">
-                        <button class="add-subtodo" onClick="addSubTodo('${todo._id}')">Add Task</button>
-                        <button class="delete-todo" onClick="deleteTodo('${todo._id}')">Delete</button>
-                    </div>
-                </section>
-              `;
-
-                if (todosContainer) {
-                    todosContainer.appendChild(todoElement);
-
-                    const titleInput = todoElement.querySelector('.todo-title');
-                    if (titleInput) {
-                        titleInput.addEventListener('input', function () {
-                            updateTodoText(todo._id, this.value);
-                        });
-                    }
-
-                    const subtodoCheckboxes = todoElement.querySelectorAll('.subtodo-checkbox');
-                    subtodoCheckboxes.forEach((checkbox, index) => {
-                        checkbox.addEventListener('change', function () {
-                            updateSubTodoStatus(todo._id, index, this.checked);
-
-                            const textInput = this.closest('.todo-item').querySelector('.subtodo-text');
-                            if (textInput) {
-                                if (this.checked) {
-                                    textInput.style.textDecoration = 'line-through';
-                                } else {
-                                    textInput.style.textDecoration = 'none';
-                                }
-                            }
-                        });
-                    });
-
-                    const subtodoTexts = todoElement.querySelectorAll('.subtodo-text');
-                    subtodoTexts.forEach((textInput, index) => {
-                        textInput.addEventListener('input', function () {
-                            updateSubTodoText(todo._id, index, this.value);
-                        });
-                    });
-
-                    const deleteSubtodoButtons = todoElement.querySelectorAll('.delete-subtodo');
-                    deleteSubtodoButtons.forEach((button, index) => {
-                        button.addEventListener('click', function () {
-                            removeSubTodo(todo._id, index);
-                            this.closest('.todo-item').remove();
-                        });
-                    });
-                }
-            });
-        } catch (err) {
-            console.error("Error fetching todos:", err);
-        }
-    };
-}
 
 
 
@@ -1584,10 +1127,15 @@ function adjustTodosPositioning() {
 function initInfinityCanvas() {
     initializeCanvas();
     setupCanvasEventListeners();
+
     updateNotePositioning();
     updateTodoPositioning();
+    updateLinkPositioning();
+
     adjustNotesAndImagesPositioning();
     adjustTodosPositioning();
+    adjustLinkPositioning();
+
     addResetButton();
     initZoom();
     console.log('Infinity canvas initialized');

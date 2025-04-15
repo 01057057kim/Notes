@@ -4,7 +4,7 @@ const connectDB = require('../db/db')
 const { linkdB } = connectDB();
 
 const linksSchema = new mongoose.Schema({
-    link: {
+    content: {
         type: String,
         required: true,
     },
@@ -27,18 +27,18 @@ const linksSchema = new mongoose.Schema({
         },
         width: {
             type: Number,
-            default: 300
+            default: 400
         },
         height: {
             type: Number,
-            default: 300
+            default: 100
         },
     }
 },
     { timestamps: true }
 )
 
-linksSchema.index({ link: 1, categoryId: 1, userId: 1, position: 1}, { unique: true })
+linksSchema.index({ content: 1, categoryId: 1, userId: 1, position: 1}, { unique: true })
 
-const Link = linkdB.model('Notes', linksSchema)
+const Link = linkdB.model('Link', linksSchema)
 module.exports = Link 

@@ -82,7 +82,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
                 if (newCategory) {
                     selectedCategoryId = newCategory._id;
                     
-                    const allContainers = document.querySelectorAll('.notes-container, .todos-container');
+                    const allContainers = document.querySelectorAll('.notes-container, .todos-container, .link-container');
                     allContainers.forEach(container => {
                         container.style.display = 'none';
                     });
@@ -95,6 +95,11 @@ document.getElementById('newCategory').addEventListener('click', async function 
                     const selectedTodosContainer = document.getElementById(`todos-${selectedCategoryId}`);
                     if (selectedTodosContainer) {
                         selectedTodosContainer.style.display = 'block';
+                    }
+
+                    const selectedLinkContainer = document.getElementById(`links-${selectedCategoryId}`);
+                    if (selectedLinkContainer) {
+                        selectedLinkContainer.style.display = 'block';
                     }
 
                     const allCategories = document.querySelectorAll('.category-item');
@@ -112,9 +117,6 @@ document.getElementById('newCategory').addEventListener('click', async function 
                             textarea.select();
                         }
                     }
-                    
-                    
-
                     hiddenTool();
                 }
             }
@@ -157,6 +159,7 @@ async function getCategory() {
             postSection.appendChild(categoryElement);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
             const todosContainer = document.createElement('section');
             todosContainer.id = `todos-${category._id}`;
             todosContainer.className = 'todos-container';
@@ -164,12 +167,21 @@ async function getCategory() {
             notePostsSection.appendChild(todosContainer);
             getTodos(category._id);
 
+            const linkContainer = document.createElement('section');
+            linkContainer.id = `links-${category._id}`;
+            linkContainer.className = 'link-container';
+            linkContainer.style.display = category._id === selectedCategoryId ? 'block' : 'none';
+            notePostsSection.appendChild(linkContainer);
+            getLink(category._id);
+            
             const notesContainer = document.createElement('section');
             notesContainer.id = `notes-${category._id}`;
             notesContainer.className = 'notes-container';
             notesContainer.style.display = category._id === selectedCategoryId ? 'block' : 'none';
             notePostsSection.appendChild(notesContainer);
             getNotes(category._id);
+
+            
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             const textarea = categoryElement.querySelector('.updateLiveCategoryName');
@@ -185,7 +197,7 @@ async function getCategory() {
                 document.querySelectorAll('.category-item').forEach(item => item.classList.remove('selected'));
                 categoryElement.classList.add('selected');
 
-                document.querySelectorAll('.notes-container, .todos-container').forEach(container => {
+                document.querySelectorAll('.notes-container, .todos-container, .link-container').forEach(container => {
                     container.style.display = 'none';
                 });
 
@@ -197,6 +209,11 @@ async function getCategory() {
                 const selectedTodosContainer = document.getElementById(`todos-${category._id}`);
                 if (selectedTodosContainer) {
                     selectedTodosContainer.style.display = 'block';
+                }
+
+                const selectedLinkContainer = document.getElementById(`links-${category._id}`);
+                if (selectedLinkContainer) {
+                    selectedLinkContainer.style.display = 'block';
                 }
                 
                 hiddenTool();
@@ -245,16 +262,18 @@ async function deleteCategory(id) {
                     selectedCategoryId = newCategoryId;
                     firstCategory.classList.add('selected');
                     
-                    const allContainers = document.querySelectorAll('.notes-container, .todos-container');
+                    const allContainers = document.querySelectorAll('.notes-container, .todos-container, .link-container');
                     allContainers.forEach(container => {
                         container.style.display = 'none';
                     });
                     
                     const selectedNotesContainer = document.getElementById(`notes-${selectedCategoryId}`);
                     const selectedTodosContainer = document.getElementById(`todos-${selectedCategoryId}`);
-                    
+                    const selectedLinkContainer = document.getElementById(`links-${selectedCategoryId}`);
+
                     if (selectedNotesContainer) selectedNotesContainer.style.display = 'block';
                     if (selectedTodosContainer) selectedTodosContainer.style.display = 'block';
+                    if (selectedLinkContainer) selectedLinkContainer.style.display = 'block';
                 }
             }
             
@@ -308,6 +327,11 @@ document.addEventListener('click', function (event) {
             container.style.display = 'none';
         });
 
+        const allLinkContainers = document.querySelectorAll('.link-container');
+        allLinkContainers.forEach(container => {
+            container.style.display = 'none';
+        });
+
         const selectedNotesContainer = document.getElementById(`notes-${categoryId}`);
         if (selectedNotesContainer) {
             selectedNotesContainer.style.display = 'block';
@@ -316,6 +340,11 @@ document.addEventListener('click', function (event) {
         const selectedTodosContainer = document.getElementById(`todos-${categoryId}`);
         if (selectedTodosContainer) {
             selectedTodosContainer.style.display = 'block';
+        }
+
+        const selectedLinkContainer = document.getElementById(`links-${categoryId}`);
+        if (selectedLinkContainer) {
+            selectedLinkContainer.style.display = 'block';
         }
 
         const allCategoryItems = document.querySelectorAll('.category-item');
