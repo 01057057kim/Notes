@@ -121,7 +121,7 @@
                         </g>
                     </svg>
                 </button>
-                <button class="table" id="table"> <!-- NO FUNCTION Table-->
+                <button class="table" id="globalAddTableButton"> <!-- NO FUNCTION Table-->
                     <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="Edit / Table_Add">
                             <path id="Vector"
@@ -130,7 +130,7 @@
                         </g>
                     </svg>
                 </button>
-                <button class="code" id="code"> <!-- NO FUNCTION Code Snippets-->
+                <button class="code" id="globalAddCodeButton"> <!-- NO FUNCTION Code Snippets-->
                     <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="System / Window_Code_Block">
                             <path id="Vector"
@@ -139,7 +139,7 @@
                         </g>
                     </svg>
                 </button>
-                <button class="draw" id="draw"> <!-- NO FUNCTION Drawing-->
+                <button class="draw" id="globalAddDrawButton"> <!-- NO FUNCTION Drawing-->
                     <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="Edit / Edit_Pencil_Line_01">
                             <path id="Vector"
@@ -148,7 +148,7 @@
                         </g>
                     </svg>
                 </button>
-                <button class="arrow" id="arrow"> <!-- NO FUNCTION Arrow Line -->
+                <button class="arrow" id="globalAddArrowButton"> <!-- NO FUNCTION Arrow Line -->
                     <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="Arrow / Arrow_Left_Right">
                             <path id="Vector" d="M16 13L19 16M19 16L16 19M19 16H5M8 11L5 8M5 8L8 5M5 8H19"
@@ -156,7 +156,7 @@
                         </g>
                     </svg>
                 </button>
-                <button class="pdf" id="pdf"> <!-- NO FUNCTION Import pdf or docs -->
+                <button class="pdf" id="globalAddPdfButton"> <!-- NO FUNCTION Import pdf or docs -->
                     <svg width="50px" height="50px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="File / File_Document">
                             <path id="Vector"
@@ -194,6 +194,22 @@
     document.getElementById('setting').addEventListener('click', function () {
         getUsernameVerified();
         window.dialog.showModal();
+    });
+
+    document.getElementById('globalAddTableButton').addEventListener('click', function () {
+        ntf('Table is not available yet!', 'coming-soon');
+    });
+    document.getElementById('globalAddCodeButton').addEventListener('click', function () {
+        ntf('Code Snippets is not available yet!', 'coming-soon');
+    });
+    document.getElementById('globalAddDrawButton').addEventListener('click', function () {
+        ntf('Drawing is not available yet!', 'coming-soon');
+    });
+    document.getElementById('globalAddArrowButton').addEventListener('click', function () {
+        ntf('Arrow Line is not available yet!', 'coming-soon');
+    });
+    document.getElementById('globalAddPdfButton').addEventListener('click', function () {
+        ntf('Import PDF is not available yet!', 'coming-soon');
     });
 </script>
 

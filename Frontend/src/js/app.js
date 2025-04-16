@@ -400,7 +400,6 @@ function hiddenTool() {
 }
 
 
-
 async function getUsernameVerified() {
     try {
         const response = await fetch('/account/getusernameverified');
@@ -425,7 +424,7 @@ async function getUsernameVerified() {
                     : <span class="${data.isVerified ? 'verified-badge' : 'unverified-badge'}">
                         ${data.isVerified ? 'Yes' : 'No'}</span>
                 </div>
-            </div>`; // changePassword need css
+            </div>`; 
 
             document.getElementById('changePassword').addEventListener('click', openChangePasswordForm);
         } else {
@@ -453,9 +452,9 @@ function openChangePasswordForm() {
                     <label for="confirmPassword">Confirm New Password</label>
                 </div>
                 <div class="form-group-two">
-                    : <input type="password" id="currentPassword" required><br>
-                    : <input type="password" id="newPassword" required><br>
-                    : <input type="password" id="confirmPassword" required>
+                    <input type="password" id="currentPassword" required><br>
+                    <input type="password" id="newPassword" required><br>
+                    <input type="password" id="confirmPassword" required>
                 </div>
             </div>
             <div class="form-buttons">
@@ -463,7 +462,7 @@ function openChangePasswordForm() {
                 <button type="button" class="btn-secondary" id="cancelPasswordChange">Cancel</button>
             </div>
         </form>
-    `; // NEED MORE CSS
+    `;
 
     document.querySelector('.deleteAccount-btn').style.display = 'none';
 

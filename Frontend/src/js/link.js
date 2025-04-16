@@ -341,6 +341,3 @@ function adjustLinkPositioning() {
     };
 }
 
-// fix the <a> if the text long make the text over to outside
-// when category got delete link deleted too
-// link search - minimap 

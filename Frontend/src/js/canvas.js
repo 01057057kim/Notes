@@ -512,7 +512,7 @@ function updateMinimap() {
         linkIndicator.style.transform = `translate(${x}px, ${y}px)`;
         linkIndicator.style.width = w + 'px';
         linkIndicator.style.height = h + 'px';
-        linkIndicator.style.backgroundColor = '#000000';
+        linkIndicator.style.backgroundColor = '#6EE7B7';
         linkIndicator.style.opacity = '0.6';
         linkIndicator.style.pointerEvents = 'none';
 
@@ -582,7 +582,6 @@ function animateScrollTo(targetX, targetY) {
 
 
 function addSearchFeature() {
-
     const existingSearch = document.getElementById('search-container');
     if (existingSearch) {
         existingSearch.remove();
@@ -594,7 +593,7 @@ function addSearchFeature() {
     const searchInput = document.createElement('input');
     searchInput.id = 'search-input';
     searchInput.type = 'text';
-    searchInput.placeholder = 'Search notes and todos...';
+    searchInput.placeholder = 'Search notes, todos, and links...';
     searchContainer.appendChild(searchInput);
 
     const searchButton = document.createElement('button');
@@ -771,6 +770,50 @@ function addSearchFeature() {
             });
         });
 
+        const linkContainers = document.querySelectorAll('[id^="links-"]');
+        linkContainers.forEach(container => {
+            if (!searchAll && container.style.display === 'none') {
+                return;
+            }
+
+            const categoryId = container.id.replace('links-', '');
+            const categoryName = categoryMap[categoryId] || 'Unknown Category';
+
+            const links = container.querySelectorAll('.link-section');
+            links.forEach(link => {
+                const linkElement = link.querySelector('.editable-link');
+                if (!linkElement) return;
+
+                const linkContent = linkElement.textContent;
+                const linkId = link.getAttribute('data-link-id');
+
+                const contentMatch = linkContent.toLowerCase().includes(searchTerm);
+
+                if (contentMatch) {
+                    const originalStyle = window.getComputedStyle(link);
+                    const originalBoxShadow = originalStyle.boxShadow;
+                    const linkColor = originalStyle.backgroundColor || '#6EE7B7';
+
+                    results.push({
+                        element: link,
+                        id: linkId,
+                        categoryId,
+                        categoryName,
+                        content: linkContent,
+                        contentMatch,
+                        type: 'link',
+                        originalBoxShadow,
+                        linkColor
+                    });
+
+                    if (container.style.display !== 'none') {
+                        const highlightColor = getHighlightColorForLink(link);
+                        link.style.boxShadow = `0 0 0 3px ${highlightColor}`;
+                    }
+                }
+            });
+        });
+
         displayResults(results, searchTerm);
         updateSearchResultsPosition();
     }
@@ -792,6 +835,26 @@ function addSearchFeature() {
             }
         }
 
+        return highlightColor;
+    }
+
+    function getHighlightColorForLink(linkElement) {
+        let highlightColor = '#6EE7B7';
+        const computedStyle = window.getComputedStyle(linkElement);
+        const backgroundColor = computedStyle.backgroundColor;
+    
+        if (backgroundColor && backgroundColor !== 'transparent' && backgroundColor !== 'rgba(0, 0, 0, 0)') {
+            const linkHeader = linkElement.querySelector('.link-header');
+            if (linkHeader) {
+                const headerStyle = window.getComputedStyle(linkHeader);
+                const headerColor = headerStyle.backgroundColor;
+    
+                if (headerColor && headerColor !== 'transparent' && headerColor !== 'rgba(0, 0, 0, 0)') {
+                    highlightColor = headerColor;
+                }
+            }
+        }
+    
         return highlightColor;
     }
 
@@ -836,49 +899,82 @@ function addSearchFeature() {
                 const resultItem = document.createElement('div');
                 resultItem.id = 'search-result-item';
 
-                let titleDisplay = result.title;
-                if (result.titleMatch) {
-                    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                    titleDisplay = titleDisplay.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
-                }
+                if (result.type === 'link') {
+                    let contentPreview = result.content;
+                    if (contentPreview.length > 80) {
+                        contentPreview = contentPreview.substring(0, 80) + '...';
+                    }
 
-                let contentPreview = result.content;
-                if (contentPreview.length > 80) {
-                    contentPreview = contentPreview.substring(0, 80) + '...';
-                }
+                    if (result.contentMatch) {
+                        const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                        contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+                    }
 
-                if (result.contentMatch) {
-                    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-                    contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
-                }
-
-                const itemTypeIcon = result.type === 'todo' ?
-                    `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g id="Edit / List_Checklist">
-                            <path id="Vector"
-                                d="M11 17H20M8 15L5.5 18L4 17M11 12H20M8 10L5.5 13L4 12M11 7H20M8 5L5.5 8L4 7"
-                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </g>
-                    </svg>` :
-                    `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g id="File / Note_Edit">
-                            <path id="Vector"
-                                d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
-                                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </g>
+                    const linkIcon = `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 17H7C4.23858 17 2 14.7614 2 12C2 9.23858 4.23858 7 7 7H9M15 17H17C19.7614 17 22 14.7614 22 12C22 9.23858 19.7614 7 17 7H15M7 12L17 12" 
+                        stroke="#000000" stroke-width="2" stroke-linecap="round"/>
                     </svg>`;
 
-                let colorIndicator = '';
+                    let colorIndicator = '';
+                    if (result.linkColor && result.linkColor !== '#ffffff' && result.linkColor !== 'rgba(255, 0, 0, 0)') {
+                        colorIndicator = `<span style="display: inline-block; background-color: ${result.linkColor}; margin-right: 5px; border-radius: 50%;"></span>`;
+                    }
 
+                    resultItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: start;">
+                            <span style="display: inline-block; margin-right: 5px; display: flex; align-items: center; justify-content: center;">${linkIcon}</span>
+                            ${colorIndicator}
+                            Link
+                        </div>
+                        <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
+                    `;
+                } else {
+                    let titleDisplay = result.title || '';
+                    if (result.titleMatch) {
+                        const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                        titleDisplay = titleDisplay.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+                    }
 
-                resultItem.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: start;">
-                        <span style="display: inline-block; margin-right: 5px; display: flex; align-items: center; justify-content: center;">${itemTypeIcon}</span>
-                        ${colorIndicator}
-                        ${titleDisplay}
-                    </div>
-                    <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
-                `;
+                    let contentPreview = result.content || '';
+                    if (contentPreview.length > 80) {
+                        contentPreview = contentPreview.substring(0, 80) + '...';
+                    }
+
+                    if (result.contentMatch) {
+                        const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+                        contentPreview = contentPreview.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+                    }
+
+                    const itemTypeIcon = result.type === 'todo' ?
+                        `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g id="Edit / List_Checklist">
+                                <path id="Vector"
+                                    d="M11 17H20M8 15L5.5 18L4 17M11 12H20M8 10L5.5 13L4 12M11 7H20M8 5L5.5 8L4 7"
+                                    stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </g>
+                        </svg>` :
+                        `<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g id="File / Note_Edit">
+                                <path id="Vector"
+                                    d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
+                                    stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </g>
+                        </svg>`;
+
+                    let colorIndicator = '';
+                    if (result.type === 'todo' && result.todoColor && result.todoColor !== '#ffffff') {
+                        colorIndicator = `<span style="display: inline-block; width: 12px; height: 12px; background-color: ${result.todoColor}; margin-right: 5px; border-radius: 50%;"></span>`;
+                    }
+
+                    resultItem.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: start;">
+                            <span style="display: inline-block; margin-right: 5px; display: flex; align-items: center; justify-content: center;">${itemTypeIcon}</span>
+                            ${colorIndicator}
+                            ${titleDisplay}
+                        </div>
+                        <div style="font-size: 0.9em; color: #666;">${contentPreview}</div>
+                    `;
+                }
 
                 resultItem.addEventListener('click', () => {
                     switchToCategory(categoryId);
@@ -920,6 +1016,11 @@ function addSearchFeature() {
                     container.style.display = 'none';
                 });
 
+                const allLinkContainers = document.querySelectorAll('[id^="links-"]');
+                allLinkContainers.forEach(container => {
+                    container.style.display = 'none';
+                });
+
                 const selectedNotesContainer = document.getElementById(`notes-${categoryId}`);
                 if (selectedNotesContainer) {
                     selectedNotesContainer.style.display = 'block';
@@ -928,6 +1029,11 @@ function addSearchFeature() {
                 const selectedTodosContainer = document.getElementById(`todos-${categoryId}`);
                 if (selectedTodosContainer) {
                     selectedTodosContainer.style.display = 'block';
+                }
+
+                const selectedLinksContainer = document.getElementById(`links-${categoryId}`);
+                if (selectedLinksContainer) {
+                    selectedLinksContainer.style.display = 'block';
                 }
 
                 const allCategories = document.querySelectorAll('.category-item');
@@ -958,9 +1064,14 @@ function addSearchFeature() {
         let flashCount = 0;
         const originalShadow = result.originalBoxShadow || '0 4px 15px rgba(93, 63, 211, 0.1)';
 
-        const highlightColor = result.type === 'todo'
-            ? getHighlightColorForTodo(element)
-            : 'rgba(93, 63, 211, 0.7)';
+        let highlightColor;
+        if (result.type === 'todo') {
+            highlightColor = getHighlightColorForTodo(element);
+        } else if (result.type === 'link') {
+            highlightColor = getHighlightColorForLink(element);
+        } else {
+            highlightColor = 'rgba(93, 63, 211, 0.7)';
+        }
 
         const flashInterval = setInterval(() => {
             if (flashCount % 2 === 0) {
@@ -986,6 +1097,11 @@ function addSearchFeature() {
         todos.forEach(todo => {
             todo.style.boxShadow = '0 4px 15px rgba(93, 63, 211, 0.1)';
         });
+
+        const links = document.querySelectorAll('.link-section');
+        links.forEach(link => {
+            link.style.boxShadow = '0 4px 15px rgba(93, 63, 211, 0.1)';
+        });
     }
 
     function escapeRegExp(string) {
@@ -1007,7 +1123,8 @@ function addSearchFeature() {
                 updateSearchResultsPosition();
             }
         }
-    }, true)
+    }, true);
+
     return {
         container: searchContainer,
         input: searchInput,
@@ -1073,9 +1190,9 @@ function integrateNewFeatures() {
         updateMinimap();
     };
 
-    const originalDeleteLink = window.deleteLink;
+    const originalDeleteLinks = window.deleteLink;
     window.deleteLink = async function (linkId) {
-        await originalDeleteLink(linkId);
+        await originalDeleteLinks(linkId);
         updateMinimap();
     };
 
@@ -1152,6 +1269,3 @@ document.addEventListener('DOMContentLoaded', function () {
     setupSpeechRecognition();
 });
 /////////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////// NEED FIX search position /////////////////////////

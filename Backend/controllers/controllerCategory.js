@@ -2,6 +2,7 @@ const Category = require('../models/category')
 const Notes = require('../models/notes')
 const Todo = require('../models/todo')
 const Image = require('../models/image')
+const Link = require('../models/link')
 
 const createCategory = async (req, res) => {
     try {
@@ -80,6 +81,9 @@ const deleteCategory = async (req, res) => {
         const deletedTodos = await Todo.deleteMany({ categoryId, userId });
         console.log('Todo deletion result:', deletedTodos);
 
+        const deletedLinks = await Link.deleteMany({ categoryId, userId });
+        console.log('Link deletion result:', deletedLinks);
+
         const category = await Category.findOneAndDelete({ _id: categoryId, userId })
 
         if (!category) {
@@ -92,7 +96,7 @@ const deleteCategory = async (req, res) => {
         console.log('Category Deleted:', category);
         res.status(200).json({
             success: true,
-            message: `Category deleted with ${deletedNotes.deletedCount} notes, ${deletedTodos.deletedCount} todos, and ${deletedImages.deletedCount} images`
+            message: `Category deleted with ${deletedNotes.deletedCount} notes, ${deletedTodos.deletedCount} todos, ${deletedLinks.deletedCount} links, and ${deletedImages.deletedCount} images`
         })
     } catch (err) {
         res.status(500).json({

@@ -6,6 +6,7 @@ const Category = require('../models/category');
 const Notes = require('../models/notes');
 const Todo = require('../models/todo');
 const Image = require('../models/image');
+const Link = require('../models/link');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../config/email');
 require('dotenv').config();
 
@@ -470,7 +471,8 @@ const deleteAccount = async (req, res) => {
         const deletedNotes = await Notes.deleteMany({ userId });
         const deletedTodos = await Todo.deleteMany({ userId });
         const deletedImages = await Image.deleteMany({ userId });
-
+        const deletedLinks = await Link.deleteMany({ userId });
+        
         const deletedUser = await account.findByIdAndDelete(userId);
 
         if (!deletedUser) {

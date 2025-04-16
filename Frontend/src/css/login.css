@@ -37,7 +37,7 @@ main {
     flex-direction: column;
     justify-content: start;
     align-items: center;
-    min-width: 22vw;
+    min-width: 400px;
     min-height: 100vh;
     background-color: var(--background-color);
     color: var(--text-color);
