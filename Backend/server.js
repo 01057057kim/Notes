@@ -1,8 +1,8 @@
 const express = require('express');
 const setupMiddlewares = require('./middlewares/middlewares');
 const connectDB = require('./db/db');
+require('dotenv').config();
 const passport = require('passport');
-
 const accountRoutes = require('./routes/routesAccount');
 const categoryRoutes = require('./routes/routesCategory');
 const notesRoutes = require('./routes/routesNotes')
@@ -10,7 +10,7 @@ const imageRoutes = require('./routes/routesImage')
 const todoRoutes = require('./routes/routesTodo')
 const linkRoutes = require('./routes/routesLink')
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 
 setupMiddlewares(app);
