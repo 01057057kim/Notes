@@ -18,7 +18,11 @@ const setupMiddlewares = (app) => {
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true,
-        cookie: {secure: process.env.NODE_ENV === 'production'}
+        cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            domain: process.env.NODE_ENV === 'production' ? 'notenest-jt3o.onrender.com' : undefined
+        }
     }));
 
     app.use(passport.initialize());

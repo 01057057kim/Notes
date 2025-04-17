@@ -13,6 +13,7 @@
         rel="stylesheet">
     <link rel="icon" href="/img/2.png" type="image/png">
 </head>
+
 <body>
     <main>
         <div class="container">
@@ -43,18 +44,22 @@
 </body>
 <script src="notification.js"></script>
 <script>
+    const BASE_URL = location.hostname === "localhost"
+        ? "http://localhost:3000"
+        : "https://notenest-jt3o.onrender.com";
+
     document.getElementById('signin-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         if (!username || !password) {
-            ntf('Please fill in all fields','error');
+            ntf('Please fill in all fields', 'error');
             return;
         }
 
         try {
-            const response = await fetch('http://localhost:3000/account/signin', {
+            const response = await fetch(`${BASE_URL}/account/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -74,15 +79,15 @@
             }
         } catch (error) {
             console.log('Error:', error);
-            ntf('Connection error. Please try again later.','error')
+            ntf('Connection error. Please try again later.', 'error')
         }
     });
     document.addEventListener('DOMContentLoaded', function () {
         const googleLoginButton = document.getElementById('google-login');
 
         googleLoginButton.addEventListener('click', function (event) {
-            event.preventDefault(); 
-            window.location.href = 'http://localhost:3000/account/google';
+            event.preventDefault();
+            window.location.href = `${BASE_URL}/account/google`;
         });
 
     });
