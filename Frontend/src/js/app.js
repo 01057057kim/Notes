@@ -28,7 +28,7 @@ signOutElements.forEach(function (element) {
 
 async function getUsername() {
     try {
-        const response = await fetch('/account/getusername')
+        const response = await fetch(`${BASE_URL/account/getusername`)
         const data = await response.json()
 
         if (data.success) {
@@ -133,7 +133,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
 
 async function getCategory() {
     try {
-        const response = await fetch('/category/getcategory', { credentials: 'include' });
+        const response = await fetch(`${BASE_URL/category/getcategory`, { credentials: 'include' });
         const data = await response.json();
         const postSection = document.getElementById('posts');
         const notePostsSection = document.getElementById('notePosts');
@@ -244,7 +244,7 @@ async function getCategory() {
 
 async function deleteCategory(id) {
     try {
-        const response = await fetch('/category/deletecategory', {
+        const response = await fetch(`${BASE_URL/category/deletecategory`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             credentials: "include",
@@ -293,7 +293,7 @@ async function deleteCategory(id) {
 
 async function updateCategory(categoryId, newValue) {
     try {
-        const response = await fetch('/category/updatecategory', {
+        const response = await fetch(`${BASE_URL/category/updatecategory`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ categoryId, newValue })
@@ -404,7 +404,7 @@ function hiddenTool() {
 
 async function getUsernameVerified() {
     try {
-        const response = await fetch('/account/getusernameverified');
+        const response = await fetch(`${BASE_URL/account/getusernameverified`);
         const data = await response.json();
 
         if (data.success) {
@@ -481,7 +481,7 @@ function openChangePasswordForm() {
         }
 
         try {
-            const response = await fetch('/account/changepassword', {
+            const response = await fetch(`${BASE_URL/account/changepassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -530,7 +530,7 @@ document.getElementById('deleteAccount').addEventListener('click', async functio
             return;
         }
 
-        const response = await fetch('/account/deleteaccount', {
+        const response = await fetch(`${BASE_URL/account/deleteaccount`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
