@@ -82,7 +82,7 @@ document.getElementById('globalAddTodoButton').addEventListener('click', async f
     const uniqueText = text + '\u200B'.repeat(uniqueId % 1000);
 
     try {
-        const response = await fetch(`${BASE_URL}/todo/createtodo`, {
+        const response = await fetch(window.BASE_URL + '/todo/createtodo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -107,7 +107,7 @@ document.getElementById('globalAddTodoButton').addEventListener('click', async f
 
 async function getTodos(categoryId) {
     try {
-        const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
+        const response = await fetch(window.BASE_URL + '/todo/gettodo?categoryId=' + categoryId, { credentials: 'include' });
         const data = await response.json();
         const todosContainer = document.getElementById(`todos-${categoryId}`);
 
@@ -135,7 +135,7 @@ window.getTodos = getTodos;
 
 async function updateTodoText(todoId, newText) {
     try {
-        const response = await fetch('/todo/updatetodotext', {
+        const response = await fetch(window.BASE_URL + '/todo/updatetodotext', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -155,7 +155,7 @@ async function updateTodoText(todoId, newText) {
 
 async function updateTodoStatus(todoId, completed) {
     try {
-        const response = await fetch('/todo/updatetodostatus', {
+        const response = await fetch(window.BASE_URL + '/todo/updatetodostatus', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -175,7 +175,7 @@ async function updateTodoStatus(todoId, completed) {
 
 async function deleteTodo(todoId) {
     try {
-        const response = await fetch(`/todo/deletetodo?todoId=${todoId}`, {
+        const response = await fetch(window.BASE_URL + '/todo/deletetodo?todoId=' + todoId, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -213,7 +213,7 @@ async function saveTodoPosition(todoId, element) {
 
         const position = { x, y, width, height };
 
-        const response = await fetch('/todo/updatetodoposition', {
+        const response = await fetch(window.BASE_URL + '/todo/updatetodoposition', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -233,7 +233,7 @@ async function saveTodoPosition(todoId, element) {
 
 window.addSubTodo = async function (todoId) {
     try {
-        const response = await fetch('/todo/addsubtodo', {
+        const response = await fetch(window.BASE_URL + '/todo/addsubtodo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -300,7 +300,7 @@ window.addSubTodo = async function (todoId) {
 
 window.updateSubTodoStatus = async function (todoId, subTodoIndex, completed) {
     try {
-        const response = await fetch('/todo/updatesubtodostatus', {
+        const response = await fetch(window.BASE_URL + '/todo/updatesubtodostatus', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -318,7 +318,7 @@ window.updateSubTodoStatus = async function (todoId, subTodoIndex, completed) {
 
 window.updateSubTodoText = async function (todoId, subTodoIndex, text) {
     try {
-        const response = await fetch('/todo/updatesubtodotext', {
+        const response = await fetch(window.BASE_URL + '/todo/updatesubtodotext', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -336,7 +336,7 @@ window.updateSubTodoText = async function (todoId, subTodoIndex, text) {
 
 window.removeSubTodo = async function (todoId, subTodoIndex) {
     try {
-        const response = await fetch('/todo/removesubtodo', {
+        const response = await fetch(window.BASE_URL + '/todo/removesubtodo', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -368,7 +368,7 @@ function updateTodoPositioning() {
                 canvasY: y
             };
 
-            const response = await fetch('/todo/updatetodoposition', {
+            const response = await fetch(window.BASE_URL + '/todo/updatetodoposition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -392,7 +392,7 @@ function adjustTodosPositioning() {
 
     window.getTodos = async function (categoryId) {
         try {
-            const response = await fetch(`/todo/gettodo?categoryId=${categoryId}`, { credentials: 'include' });
+            const response = await fetch(window.BASE_URL + '/todo/gettodo?categoryId=' + categoryId, { credentials: 'include' });
             const data = await response.json();
             const todosContainer = document.getElementById(`todos-${categoryId}`);
 

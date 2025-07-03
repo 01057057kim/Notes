@@ -83,7 +83,7 @@ document.getElementById('globalAddLinkButton').addEventListener('click', async f
     const uniqueLink = link + '\u200B'.repeat(uniqueId % 1000);
 
     try {
-        const response = await fetch(`${BASE_URL}/link/createlink`, {
+        const response = await fetch(window.BASE_URL + '/link/createlink', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -108,7 +108,7 @@ document.getElementById('globalAddLinkButton').addEventListener('click', async f
 
 async function getLink(categoryId) {
     try {
-        const response = await fetch(`/link/getlink?categoryId=${categoryId}`, { credentials: 'include' });
+        const response = await fetch(window.BASE_URL + '/link/getlink?categoryId=' + categoryId, { credentials: 'include' });
         const data = await response.json();
         const linkContainer = document.getElementById(`link-${categoryId}`);
 
@@ -136,7 +136,7 @@ window.getLink = getLink;
 
 async function updateLinkText(linkId, newContent) {
     try {
-        const response = await fetch('/link/updatelinktext', {
+        const response = await fetch(window.BASE_URL + '/link/updatelinktext', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -156,7 +156,7 @@ async function updateLinkText(linkId, newContent) {
 
 async function deleteLink(linkId) {
     try {
-        const response = await fetch(`/link/deletelink?linkId=${linkId}`, {
+        const response = await fetch(window.BASE_URL + '/link/deletelink?linkId=' + linkId, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -194,7 +194,7 @@ async function saveLinkPosition(linkId, element) {
 
         const position = { x, y, width, height };
 
-        const response = await fetch('/link/updatelinkposition', {
+        const response = await fetch(window.BASE_URL + '/link/updatelinkposition', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -228,7 +228,7 @@ function updateLinkPositioning() {
                 canvasY: y
             };
 
-            const response = await fetch('/link/updatelinkposition', {
+            const response = await fetch(window.BASE_URL + '/link/updatelinkposition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -245,13 +245,15 @@ function updateLinkPositioning() {
             console.log('update link failed:', err);
         }
     }
+
+    window.updateLinkPositioning = updateLinkPositioning;
 }
 
 function adjustLinkPositioning() {
     window.originalGetLink = window.getLink;
     window.getLink = async function (categoryId) {
         try {
-            const response = await fetch(`/link/getlink?categoryId=${categoryId}`, { credentials: 'include' });
+            const response = await fetch(window.BASE_URL + '/link/getlink?categoryId=' + categoryId, { credentials: 'include' });
             const data = await response.json();
             const linkContainer = document.getElementById(`links-${categoryId}`);
 

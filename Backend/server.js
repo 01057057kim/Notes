@@ -29,6 +29,8 @@ app.use('/link', linkRoutes)
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.set('trust proxy', 1);
+
 // Serve static files for production
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../Frontend/src/index.html'));

@@ -80,7 +80,7 @@ document.getElementById('globalAddNotesButton').addEventListener('click', async 
     const uniqueTitle = title + '\u200B'.repeat(uniqueId % 1000);
     const uniqueContent = content + '\u200B'.repeat(uniqueId % 1000);
     try {
-        const response = await fetch('http://localhost:3000/notes/createnotes', {
+        const response = await fetch(window.BASE_URL + '/notes/createnotes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -105,7 +105,7 @@ document.getElementById('globalAddNotesButton').addEventListener('click', async 
 
 async function getNotes(categoryId) {
     try {
-        const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
+        const response = await fetch(window.BASE_URL + '/notes/getnotes?categoryId=' + categoryId, { credentials: 'include' })
         const data = await response.json()
         const notesContainer = document.getElementById(`notes-${categoryId}`)
 
@@ -133,7 +133,7 @@ async function getNotes(categoryId) {
 
 async function deleteNotes(noteId) {
     try {
-        const response = await fetch('/notes/deletenotes', {
+        const response = await fetch(window.BASE_URL + '/notes/deletenotes', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             credentials: "include",
@@ -153,7 +153,7 @@ async function deleteNotes(noteId) {
 
 async function updateNotesTitle(noteId, newValue) {
     try {
-        const response = await fetch('/notes/updatenotes', {
+        const response = await fetch(window.BASE_URL + '/notes/updatenotes', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -172,7 +172,7 @@ async function updateNotesTitle(noteId, newValue) {
 
 async function updateNotesContent(noteId, newValue) {
     try {
-        const response = await fetch('/notes/updatenotes', {
+        const response = await fetch(window.BASE_URL + '/notes/updatenotes', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -198,7 +198,7 @@ async function saveNotePosition(noteId, element) {
 
         const position = { x, y, width, height };
 
-        const response = await fetch('/notes/updatenotesposition', {
+        const response = await fetch(window.BASE_URL + '/notes/updatenotesposition', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -333,7 +333,7 @@ function updateNotePositioning() {
                 canvasY: y
             };
 
-            const response = await fetch('/notes/updatenotesposition', {
+            const response = await fetch(window.BASE_URL + '/notes/updatenotesposition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -366,7 +366,7 @@ function updateNotePositioning() {
                 canvasY: y
             };
 
-            const response = await fetch('/image/updateposition', {
+            const response = await fetch(window.BASE_URL + '/image/updateposition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -391,7 +391,7 @@ function adjustNotesAndImagesPositioning() {
     window.originalGetNotes = window.getNotes;
     window.getNotes = async function (categoryId) {
         try {
-            const response = await fetch(`/notes/getnotes?categoryId=${categoryId}`, { credentials: 'include' })
+            const response = await fetch(window.BASE_URL + '/notes/getnotes?categoryId=' + categoryId, { credentials: 'include' })
             const data = await response.json()
             const notesContainer = document.getElementById(`notes-${categoryId}`)
 
@@ -485,7 +485,7 @@ function adjustNotesAndImagesPositioning() {
     window.originalLoadImageById = window.loadImageById;
     window.loadImageById = async function (imageId, categoryId) {
         try {
-            const response = await fetch(`/image/getById?imageId=${imageId}`, {
+            const response = await fetch(window.BASE_URL + '/image/getById?imageId=' + imageId, {
                 credentials: 'include'
             });
 
