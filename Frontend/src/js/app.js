@@ -1,5 +1,4 @@
-
-const BASE_URL = location.hostname === "localhost"
+window.BASE_URL = location.hostname === "localhost"
   ? "http://localhost:3000"
   : "https://notenest-pm5q.onrender.com";
 

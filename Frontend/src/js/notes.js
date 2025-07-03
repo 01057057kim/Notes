@@ -1,7 +1,3 @@
-const BASE_URL = location.hostname === "localhost"
-  ? "http://localhost:3000"
-  : "https://notenest-pm5q.onrender.com";
-
 interact('.note-section.resize-drag')
     .resizable({
         edges: { top: true, left: true, bottom: true, right: true },
@@ -84,7 +80,7 @@ document.getElementById('globalAddNotesButton').addEventListener('click', async 
     const uniqueTitle = title + '\u200B'.repeat(uniqueId % 1000);
     const uniqueContent = content + '\u200B'.repeat(uniqueId % 1000);
     try {
-        const response = await fetch(`${BASE_URL}/notes/createnotes`, {
+        const response = await fetch('http://localhost:3000/notes/createnotes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -575,3 +571,6 @@ function adjustNotesAndImagesPositioning() {
         }
     }
 }
+
+window.updateNotePositioning = updateNotePositioning;
+window.getNotes = getNotes;

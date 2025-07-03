@@ -131,6 +131,8 @@ async function getTodos(categoryId) {
     }
 }
 
+window.getTodos = getTodos;
+
 async function updateTodoText(todoId, newText) {
     try {
         const response = await fetch('/todo/updatetodotext', {

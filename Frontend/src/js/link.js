@@ -132,6 +132,8 @@ async function getLink(categoryId) {
     }
 }
 
+window.getLink = getLink;
+
 async function updateLinkText(linkId, newContent) {
     try {
         const response = await fetch('/link/updatelinktext', {
