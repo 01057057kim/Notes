@@ -1,3 +1,7 @@
+const BASE_URL = location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://notenest-pm5q.onrender.com";
+
 document.getElementById('back').addEventListener('click', (e) => {
     e.preventDefault();
     window.location.href = '/index.html';
@@ -20,7 +24,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
     signupButton.textContent = 'Loading...';
 
     try {
-        const response = await fetch('http://localhost:3000/account/signup', {
+        const response = await fetch(`${BASE_URL}/account/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -81,7 +85,7 @@ document.getElementById('verification-form').addEventListener('submit', async fu
     }
 
     try {
-        const response = await fetch('http://localhost:3000/account/verify', {
+        const response = await fetch(`${BASE_URL}/account/verify`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -130,7 +134,7 @@ document.getElementById('resend-code').addEventListener('click', async function 
     }
 
     try {
-        const response = await fetch('http://localhost:3000/account/resend-verification', {
+        const response = await fetch(`${BASE_URL}/account/resend-verification`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

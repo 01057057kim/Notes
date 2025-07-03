@@ -4,7 +4,10 @@
   "description": "Full stack notes app",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node start.js",
+    "dev": "node Backend/server.js",
+    "build": "echo 'No build step required'"
   },
   "author": "Kim",
   "license": "ISC",

@@ -1,3 +1,7 @@
+const BASE_URL = location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://notenest-pm5q.onrender.com";
+
 interact('.todo-section.resize-drag')
     .resizable({
         edges: { top: true, left: true, bottom: true, right: true },
@@ -78,7 +82,7 @@ document.getElementById('globalAddTodoButton').addEventListener('click', async f
     const uniqueText = text + '\u200B'.repeat(uniqueId % 1000);
 
     try {
-        const response = await fetch('http://localhost:3000/todo/createtodo', {
+        const response = await fetch(`${BASE_URL}/todo/createtodo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

@@ -41,9 +41,13 @@
         </div>
     </main>
 </body>
-<script src="notification.js"></script>
-<script>
-    document.getElementById('signin-form').addEventListener('submit', async function (event) {
+  <script src="notification.js"></script>
+  <script>
+      const BASE_URL = location.hostname === "localhost"
+          ? "http://localhost:3000"
+          : "https://notenest-pm5q.onrender.com";
+
+      document.getElementById('signin-form').addEventListener('submit', async function (event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -54,7 +58,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:3000/account/signin', {
+            const response = await fetch(`${BASE_URL}/account/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -82,7 +86,7 @@
 
         googleLoginButton.addEventListener('click', function (event) {
             event.preventDefault(); 
-            window.location.href = 'http://localhost:3000/account/google';
+            window.location.href = `${BASE_URL}/account/google`;
         });
 
     });

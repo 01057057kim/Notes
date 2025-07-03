@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: notenest-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node Backend/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: CALLBACK_URL
+        value: https://notenest-pm5q.onrender.com/account/google/callback
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: BCRYPT_ROUND
+        value: 10
+      - key: FRONTEND_URL
+        value: https://notenest-pm5q.onrender.com 

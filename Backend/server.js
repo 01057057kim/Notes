@@ -1,6 +1,8 @@
 const express = require('express');
+const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewares');
 const connectDB = require('./db/db');
+require('dotenv').config();
 const passport = require('passport');
 
 const accountRoutes = require('./routes/routesAccount');
@@ -10,7 +12,7 @@ const imageRoutes = require('./routes/routesImage')
 const todoRoutes = require('./routes/routesTodo')
 const linkRoutes = require('./routes/routesLink')
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 
 setupMiddlewares(app);
@@ -27,6 +29,11 @@ app.use('/link', linkRoutes)
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Serve static files for production
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/src/index.html'));
+});
+
 app.listen(port, () => {
-    console.log('server online')
+    console.log(`Server running on port ${port}`)
 })

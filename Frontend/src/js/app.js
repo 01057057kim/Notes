@@ -1,10 +1,14 @@
 
+const BASE_URL = location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://notenest-pm5q.onrender.com";
+
 let selectedCategoryId = null;
 const signOutElements = document.querySelectorAll('.signOut');
 signOutElements.forEach(function (element) {
     element.addEventListener('click', async function () {
         try {
-            const response = await fetch('http://localhost:3000/account/signout', {
+            const response = await fetch(`${BASE_URL}/account/signout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -45,7 +49,7 @@ document.getElementById('newCategory').addEventListener('click', async function 
     const uniqueId = Date.now();
     const uniqueCategoryName = categoryName + '\u200B'.repeat(uniqueId % 1000);
     try {
-        const response = await fetch('http://localhost:3000/category/createcategory', {
+        const response = await fetch(`${BASE_URL}/category/createcategory`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

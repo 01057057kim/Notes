@@ -1,3 +1,7 @@
+const BASE_URL = location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://notenest-pm5q.onrender.com";
+
 interact('.link-section.resize-drag')
     .resizable({
         edges: { top: true, left: true, bottom: true, right: true },
@@ -79,7 +83,7 @@ document.getElementById('globalAddLinkButton').addEventListener('click', async f
     const uniqueLink = link + '\u200B'.repeat(uniqueId % 1000);
 
     try {
-        const response = await fetch('http://localhost:3000/link/createlink', {
+        const response = await fetch(`${BASE_URL}/link/createlink`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
