@@ -34,6 +34,19 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../Frontend/src/index.html'));
 });
 
+if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_ENV === 'true') {
+  app.get('/debug-env', (req, res) => {
+    // Only show non-sensitive envs
+    const safeEnv = {};
+    Object.keys(process.env).forEach(key => {
+      if (!/SECRET|PASSWORD|MONGODB|EMAIL|KEY/i.test(key)) {
+        safeEnv[key] = process.env[key];
+      }
+    });
+    res.json(safeEnv);
+  });
+}
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)
 })

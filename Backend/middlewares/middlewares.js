@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const passport = require('passport');
+const MongoStore = require('connect-mongo');
 require('dotenv').config();
 
 const setupMiddlewares = (app) => {
@@ -36,11 +37,12 @@ const setupMiddlewares = (app) => {
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true,
+        store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
         cookie: {
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 24 hours
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }
     }));
 
@@ -48,6 +50,8 @@ const setupMiddlewares = (app) => {
     app.use(passport.session());
     
     require('../config/passport')(passport);
+
+    app.set('trust proxy', 1);
 };
 
 module.exports = setupMiddlewares;
