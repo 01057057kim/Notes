@@ -3,16 +3,37 @@ require('dotenv').config();
 let accountDB, categoryDB, notesDB, imageDB, todoDB, linkdB, verifyDB;
 
 const connectDB = () => {
-    const mongoHost = process.env.MONGO_URI || 'mongodb://localhost:27017';
+    // Use MongoDB Atlas URI from environment variable, fallback to local if not set
+    const mongoHost = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    
+    // MongoDB Atlas connection options
+    const connectionOptions = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+    };
     
     if (!accountDB || !categoryDB || !notesDB || !imageDB || !todoDB || !verifyDB) {
-        accountDB = mongoose.createConnection(`${mongoHost}/account`);
-        categoryDB = mongoose.createConnection(`${mongoHost}/category`);
-        notesDB = mongoose.createConnection(`${mongoHost}/notes`);
-        imageDB = mongoose.createConnection(`${mongoHost}/image`);
-        todoDB = mongoose.createConnection(`${mongoHost}/todo`);
-        linkdB = mongoose.createConnection(`${mongoHost}/link`);
-        verifyDB = mongoose.createConnection(`${mongoHost}/verification`);
+        // Get database names from environment variables or use defaults
+        const accountDbName = process.env.ACCOUNT_DB || 'account';
+        const categoryDbName = process.env.CATEGORY_DB || 'category';
+        const notesDbName = process.env.NOTES_DB || 'notes';
+        const imageDbName = process.env.IMAGE_DB || 'image';
+        const todoDbName = process.env.TODO_DB || 'todo';
+        const linkDbName = process.env.LINK_DB || 'link';
+        const verificationDbName = process.env.VERIFICATION_DB || 'verification';
+
+        // Create connections using the Atlas URI with database names
+        // For MongoDB Atlas, we need to append the database name with a slash
+        accountDB = mongoose.createConnection(`${mongoHost}${accountDbName}`, connectionOptions);
+        categoryDB = mongoose.createConnection(`${mongoHost}${categoryDbName}`, connectionOptions);
+        notesDB = mongoose.createConnection(`${mongoHost}${notesDbName}`, connectionOptions);
+        imageDB = mongoose.createConnection(`${mongoHost}${imageDbName}`, connectionOptions);
+        todoDB = mongoose.createConnection(`${mongoHost}${todoDbName}`, connectionOptions);
+        linkdB = mongoose.createConnection(`${mongoHost}${linkDbName}`, connectionOptions);
+        verifyDB = mongoose.createConnection(`${mongoHost}${verificationDbName}`, connectionOptions);
 
         accountDB.on('connected', () => console.log('Connected to account database'));
         categoryDB.on('connected', () => console.log('Connected to category database'));

@@ -593,7 +593,7 @@ function addSearchFeature() {
     const searchInput = document.createElement('input');
     searchInput.id = 'search-input';
     searchInput.type = 'text';
-    searchInput.placeholder = 'Search notes, todos, and links...';
+    searchInput.placeholder = 'Search...';
     searchContainer.appendChild(searchInput);
 
     const searchButton = document.createElement('button');
