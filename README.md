@@ -1,17 +1,6 @@
 # NoteNest
 <img src="Images/NoteNest-App.png" alt="NoteNest" width="1000"/>
 
-## Demo-1
-![til](./Images/Demo-1.gif)
-
-## Demo-2
-![til](./Images/Demo-2.gif)
-
-## Demo-3
-![til](./Images/Demo-3.gif)
-
----
-
 ## Overview
 
 The Notes App is a full-stack web application that lets users manage their notes, to-dos, images, and links on a large, flexible canvas. Users can freely place and arrange notes anywhere on the canvas, creating a big and customizable workspace for organizing information in their own way. Built with a Node.js backend and a vanilla frontend, it provides a experience for personal productivity and creative information management.
