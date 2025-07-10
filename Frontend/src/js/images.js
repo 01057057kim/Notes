@@ -85,10 +85,31 @@ async function loadImageById(imageId, categoryId) {
         imgContainer.id = `image-container-${image._id}`;
         imgContainer.setAttribute('data-category-id', categoryId);
 
-        const x = image.position?.x || 0;
-        const y = image.position?.y || 0;
-        const width = image.position?.width || 500;
-        const height = image.position?.height || 281;
+        // Check if this is a new image (no position data)
+        const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
+        let x, y;
+        const defaultWidth = 500;
+        const defaultHeight = 281;
+
+        if (isNewImage) {
+            // Center the image on the canvas
+            x = Math.max(0, (notePostsContainer.offsetWidth / 2) - (defaultWidth / 2));
+            y = Math.max(0, (notePostsContainer.offsetHeight / 2) - (defaultHeight / 2));
+            
+            // Scroll to center the new image in the viewport
+            setTimeout(() => {
+                if (canvasContainer && viewportWidth && viewportHeight) {
+                    canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
+                    canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
+                }
+            }, 100);
+        } else {
+            x = image.position?.canvasX || image.position?.x || 0;
+            y = image.position?.canvasY || image.position?.y || 0;
+        }
+
+        const width = image.position?.width || defaultWidth;
+        const height = image.position?.height || defaultHeight;
 
         imgContainer.setAttribute('data-x', x);
         imgContainer.setAttribute('data-y', y);
@@ -127,6 +148,11 @@ async function loadImageById(imageId, categoryId) {
         notesContainer.appendChild(imgContainer);
 
         setupImageInteractions(imgContainer, image._id);
+        
+        // Update minimap if it exists
+        if (typeof updateMinimap === 'function') {
+            updateMinimap();
+        }
     } catch (error) {
         console.error('Error loading image by ID:', error);
     }
@@ -177,10 +203,23 @@ async function loadImagesForCategory(categoryId) {
             imgContainer.id = `image-container-${image._id}`;
             imgContainer.setAttribute('data-category-id', categoryId);
 
-            const x = image.position?.x || 0;
-            const y = image.position?.y || 0;
-            const width = image.position?.width || 500;
-            const height = image.position?.height || 281;
+            // Check if this image has proper position data
+            const isNewImage = !image.position || (!image.position.canvasX && !image.position.x);
+            let x, y;
+            const defaultWidth = 500;
+            const defaultHeight = 281;
+
+            if (isNewImage) {
+                // Center the image on the canvas
+                x = Math.max(0, (notePostsContainer.offsetWidth / 2) - (defaultWidth / 2));
+                y = Math.max(0, (notePostsContainer.offsetHeight / 2) - (defaultHeight / 2));
+            } else {
+                x = image.position?.canvasX || image.position?.x || 0;
+                y = image.position?.canvasY || image.position?.y || 0;
+            }
+
+            const width = image.position?.width || defaultWidth;
+            const height = image.position?.height || defaultHeight;
 
             imgContainer.setAttribute('data-x', x);
             imgContainer.setAttribute('data-y', y);
@@ -306,7 +345,14 @@ function setupImageInteractions(imgContainer, imageId) {
             const width = parseFloat(element.style.width) || 500;
             const height = parseFloat(element.style.height) || 281;
 
-            const position = { x, y, width, height };
+            const position = { 
+                x, 
+                y, 
+                width, 
+                height,
+                canvasX: x,
+                canvasY: y
+            };
 
             const response = await fetch('/image/updateposition', {
                 method: 'PUT',

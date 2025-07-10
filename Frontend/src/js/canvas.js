@@ -5,8 +5,8 @@ let startX, startY, scrollLeft, scrollTop;
 let viewportWidth, viewportHeight;
 let centerX, centerY;
 let zoomLevel = 1;
-let minZoom = 0.5;
-let maxZoom = 1;
+let minZoom = 0.1;
+let maxZoom = 3;
 let zoomStep = 0.1;
 let minimap, zoomControls, searchContainer;
 let minimapUpdateTimeout = null;
@@ -80,9 +80,17 @@ function initializeCanvas() {
     viewportWidth = window.innerWidth;
     viewportHeight = window.innerHeight;
 
+    // Set initial canvas size
+    notePostsContainer.style.width = '10000px';
+    notePostsContainer.style.height = '10000px';
+    notePostsContainer.style.position = 'relative';
+    notePostsContainer.style.transformOrigin = '0 0';
+
+    // Calculate center position
     centerX = (notePostsContainer.offsetWidth / 2) - (viewportWidth / 2);
     centerY = (notePostsContainer.offsetHeight / 2) - (viewportHeight / 2);
 
+    // Set initial scroll position to center
     canvasContainer.scrollLeft = centerX;
     canvasContainer.scrollTop = centerY;
 
@@ -91,8 +99,12 @@ function initializeCanvas() {
     canvasContainer.style.left = "0";
     canvasContainer.style.width = "100%";
     canvasContainer.style.height = "100vh";
-    canvasContainer.style.overflow = "hidden";
+    canvasContainer.style.overflow = "auto";
     canvasContainer.style.cursor = "default";
+    
+    // Apply initial zoom
+    notePostsContainer.style.transform = `scale(${zoomLevel})`;
+    notePostsContainer.style.transformOrigin = '0 0';
 }
 
 function handleMouseDown(e) {
@@ -139,7 +151,7 @@ function handleMouseWheelZoom(event) {
     const mouseX = event.clientX;
     const mouseY = event.clientY;
     const adaptiveZoomStep = zoomStep * (zoomLevel < 1 ? 0.5 : 1);
-    const delta = -Math.sign(event.deltaY) * zoomStep;
+    const delta = -Math.sign(event.deltaY) * adaptiveZoomStep;
     const newZoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
 
     if (newZoomLevel === zoomLevel) return;
@@ -331,6 +343,8 @@ function setupCanvasEventListeners() {
     canvasContainer.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     canvasContainer.addEventListener('contextmenu', disableContextMenu);
+    setupMouseWheelZoom();
+    
     window.addEventListener('mouseleave', function () {
         isPanning = false;
         canvasContainer.style.cursor = "default";
@@ -342,6 +356,7 @@ function setupCanvasEventListeners() {
 
         centerX = (notePostsContainer.offsetWidth / 2) - (viewportWidth / 2);
         centerY = (notePostsContainer.offsetHeight / 2) - (viewportHeight / 2);
+        updateMinimap();
     });
 
     window.addEventListener('keydown', handleShortcut);
@@ -1154,10 +1169,12 @@ function integrateNewFeatures() {
         debouncedUpdateMinimap();
     };
 
+    // Note: getNotes is now handled directly in notes.js
+    // We'll update minimap after notes are loaded
     const originalGetNotes = window.getNotes;
     window.getNotes = async function (categoryId) {
         await originalGetNotes(categoryId);
-        updateMinimap();
+        setTimeout(updateMinimap, 100);
     };
 
     const originalGetTodos = window.getTodos;
@@ -1265,7 +1282,17 @@ function initInfinityCanvas() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    initInfinityCanvas();
-    setupSpeechRecognition();
+    // Ensure canvas elements exist before initializing
+    if (canvasContainer && notePostsContainer) {
+        initInfinityCanvas();
+        setupSpeechRecognition();
+        
+        // Force a resize event to ensure proper initialization
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
+    } else {
+        console.error('Canvas elements not found');
+    }
 });
 /////////////////////////////////////////////////////////////////////////////////

@@ -121,8 +121,78 @@ async function getNotes(categoryId) {
             console.log('Error', data.message)
             return
         }
-        if (data.success) {
+
+        if (data.success && data.notes) {
             console.log("Success get note data")
+            
+            data.notes.forEach(function (notes) {
+                const notesElement = document.createElement('section')
+                const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
+                let x, y;
+
+                if (isNewNote) {
+                    x = notePostsContainer.offsetWidth / 2 - 125;
+                    y = notePostsContainer.offsetHeight / 2 - 125;
+                    setTimeout(() => {
+                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
+                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
+                    }, 100);
+                } else {
+                    x = notes.position?.canvasX || notes.position?.x || 0;
+                    y = notes.position?.canvasY || notes.position?.y || 0;
+                }
+
+                const positionStyle = `style="width: ${notes.position?.width || 300}px; height: ${notes.position?.height || 300}px; transform: translate(${x}px, ${y}px);"`;
+                const positionData = `data-x="${x}" data-y="${y}"`;
+
+                notesElement.innerHTML = `
+                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
+                        <textarea class="updateLiveTitle" maxlength="60" data-note-id="${notes._id}">${notes.title}</textarea> </br>
+                        <textarea class="updateLiveContent" maxlength="10000" data-note-id="${notes._id}">${notes.content}</textarea>
+                        <div class="delete-speech">
+                            <button id="custom"> ⫶ </button>
+                            <button id="speech">Speech</button>
+                            <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
+                        </div>
+                    </section>
+                `
+
+                if (notesContainer) {
+                    notesContainer.appendChild(notesElement)
+
+                    const titleTextarea = notesElement.querySelector('.updateLiveTitle');
+                    const contentTextarea = notesElement.querySelector('.updateLiveContent');
+                    const noteSection = notesElement.querySelector('.note-section');
+
+                    if (notes.theme) {
+                        noteSection.style.backgroundColor = notes.theme.bgColor || '';
+
+                        titleTextarea.style.color = notes.theme.titleColor || '';
+                        titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        titleTextarea.style.fontFamily = notes.theme.titleFont || '';
+                        titleTextarea.style.fontSize = notes.theme.titleSize || '';
+
+                        contentTextarea.style.color = notes.theme.contentColor || '';
+                        contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
+                        contentTextarea.style.fontFamily = notes.theme.contentFont || '';
+                        contentTextarea.style.fontSize = notes.theme.contentSize || '';
+
+                        noteSection.classList.add('theme-applied');
+                    }
+
+                    titleTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesTitle(noteId, newValue);
+                    });
+
+                    contentTextarea.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
+                        const noteId = event.target.dataset.noteId;
+                        updateNotesContent(noteId, newValue);
+                    });
+                }
+            });
         } else {
             console.log("Error get notes data")
         }
@@ -388,100 +458,9 @@ function updateNotePositioning() {
 }
 
 function adjustNotesAndImagesPositioning() {
-    window.originalGetNotes = window.getNotes;
-    window.getNotes = async function (categoryId) {
-        try {
-            const response = await fetch(window.BASE_URL + '/notes/getnotes?categoryId=' + categoryId, { credentials: 'include' })
-            const data = await response.json()
-            const notesContainer = document.getElementById(`notes-${categoryId}`)
-
-            if (notesContainer) {
-                const imageContainers = notesContainer.querySelectorAll('.image-container');
-                const imageElements = Array.from(imageContainers).map(container => container.cloneNode(true));
-
-                const noteSections = notesContainer.querySelectorAll('.note-section');
-                noteSections.forEach(section => section.remove());
-            }
-
-            if (!data.success) {
-                console.log('Error', data.message)
-                return
-            }
-
-            data.notes.forEach(function (notes) {
-                const notesElement = document.createElement('section')
-                const isNewNote = !notes.position || (!notes.position.canvasX && !notes.position.x);
-                let x, y;
-
-                if (isNewNote) {
-                    x = notePostsContainer.offsetWidth / 2 - 125;
-                    y = notePostsContainer.offsetHeight / 2 - 125
-                    setTimeout(() => {
-                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + 125) * zoomLevel;
-                        canvasContainer.scrollTop = (y - viewportHeight / 2 + 125) * zoomLevel;
-                    }, 100);
-                } else {
-                    x = notes.position?.canvasX || notes.position?.x || 0;
-                    y = notes.position?.canvasY || notes.position?.y || 0;
-                }
-
-                const positionStyle = `style="width: ${notes.position?.width || 300}px; height: ${notes.position?.height || 300}px; transform: translate(${x}px, ${y}px);"`;
-                const positionData = `data-x="${x}" data-y="${y}"`;
-
-                notesElement.innerHTML = `
-                    <section class="note-section resize-drag" ${positionStyle} ${positionData}>
-                        <textarea class="updateLiveTitle" maxlength="60" data-note-id="${notes._id}">${notes.title}</textarea> </br>
-                        <textarea class="updateLiveContent" maxlength="10000" data-note-id="${notes._id}">${notes.content}</textarea>
-                        <div class="delete-speech">
-                            <button id="custom"> ⫶ </button>
-                            <button id="speech">Speech</button>
-                            <button onClick="deleteNotes('${notes._id}')">Delete notes</button> 
-                        </div>
-                    </section>
-                `
-
-                if (notesContainer) {
-                    notesContainer.appendChild(notesElement)
-
-                    const titleTextarea = notesElement.querySelector('.updateLiveTitle');
-                    const contentTextarea = notesElement.querySelector('.updateLiveContent');
-                    const noteSection = notesElement.querySelector('.note-section');
-
-                    if (notes.theme) {
-                        noteSection.style.backgroundColor = notes.theme.bgColor || '';
-
-                        titleTextarea.style.color = notes.theme.titleColor || '';
-                        titleTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
-                        titleTextarea.style.fontFamily = notes.theme.titleFont || '';
-                        titleTextarea.style.fontSize = notes.theme.titleSize || '';
-
-                        contentTextarea.style.color = notes.theme.contentColor || '';
-                        contentTextarea.style.backgroundColor = notes.theme.secondaryBgColor || '';
-                        contentTextarea.style.fontFamily = notes.theme.contentFont || '';
-                        contentTextarea.style.fontSize = notes.theme.contentSize || '';
-
-                        noteSection.classList.add('theme-applied');
-                    }
-
-                    titleTextarea.addEventListener('input', (event) => {
-                        const newValue = event.target.value;
-                        const noteId = event.target.dataset.noteId;
-                        updateNotesTitle(noteId, newValue);
-                    });
-
-                    contentTextarea.addEventListener('input', (event) => {
-                        const newValue = event.target.value;
-                        const noteId = event.target.dataset.noteId;
-                        updateNotesContent(noteId, newValue);
-                    });
-                }
-            });
-
-        } catch (err) {
-            console.log("Error: ", err)
-        }
-    }
-
+    // This function is now simplified since getNotes is handled directly
+    console.log('Notes and images positioning adjusted');
+    
     window.originalLoadImageById = window.loadImageById;
     window.loadImageById = async function (imageId, categoryId) {
         try {
@@ -512,12 +491,14 @@ function adjustNotesAndImagesPositioning() {
             const defaultHeight = 281;
 
             if (isNewImage) {
-                x = notePostsContainer.offsetWidth / 2 - defaultWidth / 2;
-                y = notePostsContainer.offsetHeight / 2 - defaultHeight / 2;
+                x = Math.max(0, (notePostsContainer.offsetWidth / 2) - (defaultWidth / 2));
+                y = Math.max(0, (notePostsContainer.offsetHeight / 2) - (defaultHeight / 2));
 
                 setTimeout(() => {
-                    canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
-                    canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
+                    if (canvasContainer && viewportWidth && viewportHeight) {
+                        canvasContainer.scrollLeft = (x - viewportWidth / 2 + defaultWidth / 2) * zoomLevel;
+                        canvasContainer.scrollTop = (y - viewportHeight / 2 + defaultHeight / 2) * zoomLevel;
+                    }
                 }, 100);
             } else {
                 x = image.position?.canvasX || image.position?.x || 0;

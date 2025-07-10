@@ -252,8 +252,9 @@ body {
     background-size: 45px 45px;
     background-position: center center;
     border: none;
-    overflow: hidden;
+    overflow: visible;
     transform-origin: 0 0;
+    z-index: 1;
 }
 
 .notes-container {
@@ -283,6 +284,7 @@ body {
     flex-direction: column;
     transition: box-shadow 0.3s ease;
     cursor: move;
+    z-index: 10;
 }
 
 .note-section:hover {
@@ -349,6 +351,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     position: relative;
+    z-index: 10;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -443,6 +446,7 @@ body {
     height: 100vh;
     overflow: auto;
     background-color: var(--background-color);
+    z-index: 1;
 }
 
 .panning-cursor {
